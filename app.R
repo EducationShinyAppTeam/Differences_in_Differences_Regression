@@ -239,10 +239,19 @@ ui <- list(
             collapsible = TRUE,
             collapsed = TRUE,
             width = '100%',
-            p("In addition to the specific assumptions of the two-period Difference-in-Difference (Diff-in-Diff) model, all ordinary least squares (OLS) regression assumptions also apply to Diff-in-Diff models since we are using linear regression here."),
-            p("The OLS assumptions include linearity, independence of errors, homoscedasticity, no multicollinearity, and normality of residuals. Ensuring these assumptions hold is crucial for the accuracy of your regression results."),
-            p(HTML("In this app, we assume that these OLS assumptions are held. However, if you'd like to further explore and check these assumptions, visit the 
-    <a href='https://psu-eberly.shinyapps.io/Assumptions/' class='bodylinks'>Regression Assumptions</a> app."))
+            p("In addition to the specific assumptions of the 
+              Two-Period Difference-in-Difference (Diff-in-Diff) model, 
+              other regression assumptions will also apply to Diff-in-Diff models
+              as appropriate for the study design and the analysis method used 
+              for the linear regression."),
+            p("These assumptions may include things like linearity, independence 
+              of errors, homoscedasticity, no multicollinearity, and normality of 
+              residuals. Ensuring these assumptions hold is crucial for the accuracy 
+              of your regression results."),
+            p(HTML("In this app, we assume that these regression assumptions are held. 
+            However, if you'd like to further explore and check these assumptions, 
+            visit the <a href='https://psu-eberly.shinyapps.io/Assumptions/' class='
+            bodylinks'>Regression Assumptions</a> app."))
           )
         ),
         
