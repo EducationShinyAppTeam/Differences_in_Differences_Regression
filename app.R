@@ -118,47 +118,23 @@ ui <- list(
             collapsed = TRUE,
             width = '100%',
             p("The Diff-in-Diff regression model is used to estimate the causal effect of a treatment. The general form of the Diff-in-Diff regression is:"),
-            HTML("<p>\\( Y_{it} = \\alpha + \\theta G_i + \\gamma I_t + \\tau (G_i \\times I_t) + \\epsilon_{it} \\)</p>"),
+            HTML("<p>\\[
+          \\hat{Y}_{it} = \\hat{\\beta}_0 + \\hat{\\beta}_1 t + \\hat{\\beta}_2 G_i + \\hat{\\beta}_3 (t \\times I_t \\times G_i)
+          \\]</p>"),
             p("Where:"),
             HTML("
     <ul>
-      <li>Y<sub>it</sub></strong>: Outcome variable for individual i at time t.</li>
-      <li>G<sub>i</sub></strong>: Group indicator (1 for treatment group, 0 for control group).</li>
-      <li>I<sub>t</sub></strong>: Time indicator (1 for post-treatment period, 0 for pre-treatment period).</li>
-      <li>G<sub>i</sub> * I<sub>t</sub></strong>: Interaction term between group and time.</li>
-      <li>τ: The coefficient of interest, which estimates the treatment effect.</li>
-      <li>α, θ, γ</strong>: Coefficients capturing baseline outcome, group differences, and time trends.</li>
-      <li>ε<sub>it</sub></strong>: Error term capturing unobserved factors.</li>
-    </ul>
+            <li><strong>\\(\\hat{Y}_{it}\\)</strong>: Estimated outcome for individual i at time t.</li>
+            <li><strong>t</strong>: Continuous time variable.</li>
+            <li><strong>\\(G_i\\)</strong>: Group indicator (1 for the treatment group, 0 for the control group).</li>
+            <li><strong>\\(I_t\\)</strong>: Time indicator (1 for the post-treatment period, 0 for the pre-treatment period).</li>
+            <li><strong>\\(\\hat{\\beta}_0\\)</strong>: Estimated intercept.</li>
+            <li><strong>\\(\\hat{\\beta}_1\\)</strong>: Estimated coefficient for the time trend.</li>
+            <li><strong>\\(\\hat{\\beta}_2\\)</strong>: Estimated coefficient for the treatment group.</li>
+            <li><strong>\\(\\hat{\\beta}_3\\)</strong>: Estimated coefficient for the interaction term, which reflects the impact of the treatment on the treated group, controlling for time trends.</li>
+          </ul>
   ")
           ),
-          
-          
-          
-          # Box for Estimator
-          box(
-            title = strong("Estimator"), 
-            status = "primary", 
-            collapsible = TRUE,
-            collapsed = TRUE,
-            width = '100%',
-            p("We use the Average Treatment effect on the Treated (ATT) as the Diff-in-Diff estimator because it focuses on estimating the causal effect of the treatment on those who actually received it."),
-            p("The Diff-in-Diff estimator is used to calculate the treatment effect (ATT) as:"),
-            HTML("<p>\\( \\tau_{ATT} = \\left\\{ E[Y_{i1} | G_i = 1] - E[Y_{i1} | G_i = 0] \\right\\} - \\left\\{ E[Y_{i0} | G_i = 1] - E[Y_{i0} | G_i = 0] \\right\\} \\)</p>"),
-            p("Where:"),
-            HTML("
-    <ul>
-      <li>E[Y<sub>i1</sub> | G<sub>i</sub> = 1]</strong>: Average outcome for the treatment group post-treatment.</li>
-      <li>E[Y<sub>i1</sub> | G<sub>i</sub> = 0]</strong>: Average outcome for the control group post-treatment.</li>
-      <li>E[Y<sub>i0</sub> | G<sub>i</sub> = 1]</strong>: Average outcome for the treatment group pre-treatment.</li>
-      <li>E[Y<sub>i0</sub> | G<sub>i</sub> = 0]</strong>: Average outcome for the control group pre-treatment.</li>
-    </ul>
-  ")
-          ),
-          
-          
-          
-          
           
           box(
             title = strong("Causal Inference Concepts"), 
@@ -202,8 +178,8 @@ ui <- list(
             p("Statistical tests can also be used to formally test for differences in pre-intervention trends."),
             
             p("If the assumption is violated:"),
-            p("The Difference-in-Difference (Diff-in-Diff) model may yield biased estimates of the treatment effect."),
-            p("In this case, alternative approaches like using fixed effects or adding control variables may be needed to adjust for the non-parallel trends.")
+            p("The Difference-in-Difference (Diff-in-Diff) model may yield biased estimates of the treatment effect.")
+            
           ),
           
           
