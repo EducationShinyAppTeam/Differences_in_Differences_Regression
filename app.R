@@ -89,7 +89,7 @@ ui <- list(
             "Xin Y. and Hatfield, N. J. (2024). Two-Period Difference in Difference. [R Shiny app]. Available https://psu-eberly.shinyapps.io/Two_Period Difference_in_Difference/",
             br(),
             br(),
-            div(class = "updated", "Last Update: 10/03/2024 by XY.")
+            div(class = "updated", "Last Update: 10/07/2024 by XY.")
           )
         ),
         #### Set up the Prerequisites Page ----
