@@ -94,6 +94,7 @@ ui <- list(
         #### Set up the Prerequisites Page ----
         tabItem(
           tabName = "prerequisites",
+          withMathJax(),
           h2("Prerequisites"),
           p("What is Two-Period Diff-in-Diff? ", 
             tags$a(
@@ -111,11 +112,20 @@ ui <- list(
             collapsible = TRUE,
             collapsed = TRUE,
             width = '100%',
-            p("The Diff-in-Diff regression model is used to estimate the causal effect of a treatment. The general form of the Diff-in-Diff regression is:"),
-            p("\\[
+            
+            # Wrap the entire content in withMathJax() to enable LaTeX rendering
+           
+              # Description of the Diff-in-Diff regression model
+              p("The Diff-in-Diff regression model is used to estimate the causal effect of a treatment. The general form of the Diff-in-Diff regression is:"),
+              
+              # LaTeX equation rendered with \[ \] for block display
+              p("\\[
 Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times G_i) + \\epsilon_{it}
 \\]"),
-            p("Where:"),
+              
+              # Explanation of the terms used in the regression equation
+              p("Where:"),
+              
             tags$ol(
               tags$li("\\(Y_{it}\\): Outcome for individual i at time t."),
               tags$li("\\(t\\): Continuous time variable."),
@@ -131,6 +141,8 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
               is given by \\(\\beta_3\\), which is estimated by \\(\\hat{\\beta}_3\\) using an analysis of sampling design.")
             
           ),
+          
+          
 
           box(
             title = strong("Causal Inference Concepts"),
@@ -256,8 +268,11 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
             Trends assumption and Exchangeability Assumption. You can use the sliders
             to adjust the parameters. The graphs will automatically update to show how
             these changes influence the model's results, helping you understand whether
-            the assumptions hold or are violated in different scenarios. "),
-          br(),
+            the assumptions hold or are violated in different scenarios."),
+          p(strong("Note:"), " The vertical black line represents the intervention year. 
+   The left part is pre-intervention, and the right part is post-intervention. 
+   The red dashed line represents the Treatment Group, 
+   while the blue solid line represents the Control Group."),
 
           # Main content for exploring assumptions
           fluidPage(
@@ -477,48 +492,60 @@ server <- function(input, output, session) {
     intervention_year <- 1964  # The year of intervention
 
     # Plot using ggplot2
-    ggplot(data, aes(x = year, y = outcome, color = group)) +
-      geom_line(size = 1.2) +
-      geom_vline(aes(xintercept = intervention_year, linetype = "Intervention"), color = "black", size = 1) +
-      labs(title = "Parallel Trends Assumption", x = "Year", y = "Outcome", linetype = "") +
+    ggplot(data, aes(x = year, y = outcome, color = group, linetype = group)) +
+      geom_line(linewidth = 1.2) +
+      geom_vline(aes(xintercept = intervention_year), color = "black", linetype = "solid", linewidth = 1.2)+
+      
+      # Set the labels for title, x, and y axes
+      labs(title = "Parallel Trends Assumption", x= "Year",  y = "Outcome") +
       theme_minimal() +
-
-      # Customize the color for Control and Treatment groups
-      scale_color_manual(values = c("Control Group" = "blue", "Treatment Group" = "red")) +
-
-      # Include the intervention line in the legend
-      scale_linetype_manual(values = c("Intervention" = "solid")) +
-
-      # Make all text elements bold and increase size
+      
+      # Manually set colors for Control and Treatment groups
+      scale_color_manual(values = c("Control Group" = "blue", "Treatment Group" = "red")) +  # Control = blue, Treatment = red
+      
+      # Manually set linetypes for Control and Treatment groups if needed
+      scale_linetype_manual(values = c("Control Group" = "solid", "Treatment Group" = "dashed")) + 
+      
+      
+      
+      # Remove x-axis numeric labels and ticks
       theme(
-        axis.text.x = element_blank(),  # Hide x-axis numbers
+        axis.text.x = element_blank(),  # Hide x-axis text (numbers)
         axis.ticks.x = element_blank(),  # Hide x-axis ticks
         legend.position = "bottom",
         legend.title = element_blank(),
-        axis.title.x = element_text(size = 20, face = "bold"),
+        axis.title.x = element_blank(),  # Completely remove x-axis title
         axis.title.y = element_text(size = 20, face = "bold"),
         axis.text = element_text(size = 16, face = "bold"),
         legend.text = element_text(size = 16, face = "bold"),
         plot.title = element_text(size = 22, face = "bold")
       )
+    
   })
 
   # Assumption Check for Parallel Trends
   output$assumptionCheck <- renderUI({
     if (input$trend_control == input$trend_treatment) {
-      HTML("<p style='font-size:18px; font-weight:bold;'>Assumption Satisfied: The control and treatment groups have parallel trends before the intervention, meaning the assumption holds.</p>")
+      p(
+        "Assumption Satisfied: The control and treatment groups have parallel trends before the intervention, meaning the assumption holds.",
+        style = "font-size:18px; font-weight:bold;"
+      )
     } else {
-      HTML("<p style='font-size:18px; font-weight:bold;'>Assumption Violated: The control and treatment groups do not follow parallel trends before the intervention, meaning the assumption is violated.</p>")
+      p(
+        "Assumption Violated: The control and treatment groups do not follow parallel trends before the intervention, meaning the assumption is violated.",
+        style = "font-size:18px; font-weight:bold;"
+      )
     }
   })
 
   # Assumption Check for Exchangeability
   output$exchangeabilityCheck <- renderUI({
     if (input$confounder == 0) {
-      HTML("<p style='font-size:18px; font-weight:bold;'>Exchangeability Assumption holds: No systematic differences between treatment and control groups.</p>")
+      p("Exchangeability Assumption holds: No systematic differences between treatment and control groups.",
+        style = "font-size:18px; font-weight:bold;")
     } else {
-      HTML("<p style='font-size:18px; font-weight:bold;'>Exchangeability Assumption violated: Systematic differences between treatment and control groups exist.
-           A confounding factor may explain the differences between outcomes, so Diff-in-Diff model has bias.</p>")
+      p("Exchangeability Assumption violated: Systematic differences between treatment and control groups exist. A confounding factor may explain the differences between outcomes, so Diff-in-Diff model has bias.",
+        style = "font-size:18px; font-weight:bold;")
     }
   })
 
@@ -556,29 +583,29 @@ server <- function(input, output, session) {
     data <- generate_exchangeability_data()
     intervention_year <- max(data$year)  # The intervention year is set to the last year
 
-    ggplot(data, aes(x = year, y = outcome, color = group)) +
-      geom_line(size = 1.2) +  # Using line plot to show trends
-
+    ggplot(data, aes(x = year, y = outcome, color = group, linetype = group)) +
+      geom_line(linewidth = 1.2) +  # Using line plot to show trends
+      
       # Add the vertical line at the far right representing intervention, and give it a label in the legend
-      geom_vline(aes(xintercept = intervention_year, linetype = "Intervention"), color = "black", size = 1) +
-
+      geom_vline(aes(xintercept = intervention_year), color = "black", linetype = "solid", linewidth = 1.2)+
+      
       # Set the labels for title, x, and y axes
-      labs(title = "Exchangeability Assumption", x = "Year", y = "Outcome", linetype = "") +
+      labs(title = "Exchangeability Assumption", x = "Year", y = "Outcome") +
       theme_minimal() +
-
+      
       # Customize the color for Control and Treatment groups
-      scale_color_manual(values = c("Control Group" = "blue", "Treatment Group" = "red")) +
-
-      # Include the intervention line in the legend
-      scale_linetype_manual(values = c("Intervention" = "solid")) +
-
+      scale_color_manual(values = c("Control Group" = "blue", "Treatment Group" = "red")) +  # Set the colors
+      
+      # Set linetypes: solid for Control Group, dashed for Treatment Group, and solid for Intervention
+      scale_linetype_manual(values = c("Control Group" = "solid", "Treatment Group" = "dashed", "Intervention" = "solid")) +
+      
       # Remove x-axis numeric labels and ticks
       theme(
         axis.text.x = element_blank(),  # Hide x-axis text (numbers)
         axis.ticks.x = element_blank(),  # Hide x-axis ticks
         legend.position = "bottom",
         legend.title = element_blank(),
-
+        
         # Make all text elements bold and increase size
         axis.title.x = element_text(size = 20, face = "bold"),
         axis.title.y = element_text(size = 20, face = "bold"),
@@ -586,6 +613,7 @@ server <- function(input, output, session) {
         legend.text = element_text(size = 16, face = "bold"),
         plot.title = element_text(size = 22, face = "bold")
       )
+    
   })
 
 
