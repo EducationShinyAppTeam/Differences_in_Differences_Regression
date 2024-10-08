@@ -118,7 +118,7 @@ ui <- list(
             width = '100%',
             p("The Diff-in-Diff regression model is used to estimate the causal effect of a treatment. The general form of the Diff-in-Diff regression is:"),
             HTML("<p>\\[
-          \\hat{Y}_{it} = \\hat{\\beta}_0 + \\hat{\\beta}_1 t + \\hat{\\beta}_2 G_i + \\hat{\\beta}_3 (t \\times I_t \\times G_i)
+          {Y}_{it} = \\hat{\\beta}_0 + \\hat{\\beta}_1 t + \\hat{\\beta}_2 G_i + \\hat{\\beta}_3 (t \\times I_t \\times G_i)
           \\]</p>"),
             p("Where:"),
             HTML("
@@ -157,7 +157,7 @@ ui <- list(
         <p>Causal inference relies on assumptions like no unmeasured confounding, consistency (the observed outcome matches the potential outcome under treatment), and SUTVA (no interference between units).</p>
 
         <strong>6. Estimation of Causal Effects:</strong>
-        <p>We estimate treatment effects such as the Average Treatment Effect (ATE) for the whole population or the Average Treatment Effect on the Treated (ATT) for those who actually received treatment. Heterogeneous effects capture variations across subgroups.In this case we use ATT.
+        <p>We estimate treatment effects such as the Average Treatment Effect (ATE) for the whole population or the Average Treatment Effect on the Treated (ATT) for those who actually received treatment. Heterogeneous effects capture variations across subgroups.
                  </p>")
           ),
 
