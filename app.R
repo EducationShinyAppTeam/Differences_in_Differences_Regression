@@ -54,7 +54,6 @@ ui <- list(
         #### Set up the Overview Page ----
         tabItem(
           tabName = "overview",
-          withMathJax(),
           h1("Two Period Differences-in-Differences Regression"),
           p("This app is designed to help students explore and understand the
             core concepts, assumptions of Two-Period Diff-in-Diff by experimenting
@@ -95,20 +94,16 @@ ui <- list(
         #### Set up the Prerequisites Page ----
         tabItem(
           tabName = "prerequisites",
-          withMathJax(),
           h2("Prerequisites"),
-          p("What is Two-Period Diff-in-Diff ? Two-Period Diff-in-Diff (",
-            a(href = 'https://www.publichealth.columbia.edu/research/population-health-methods/difference-difference-estimation',
-            "Two-Period Difference-in-Difference", class = 'bodylinks'),
-            ") is a statistical method used to estimate causal effects by comparing
-            changes in outcomes between a treatment group and a control group over
-            two time periods: before and after the intervention. It accounts for
-            time-invariant differences between the groups and isolates the impact
-            of the intervention by assuming that, in the absence of treatment,
-            both groups would follow parallel trends over time. This method is
-            particularly useful when randomization is not feasible. Here we use
-            linear regression as the estimation method to explore."),
-          br(),
+          p("What is Two-Period Diff-in-Diff? ", 
+            tags$a(
+              href = "https://www.publichealth.columbia.edu/research/population-health-methods/difference-difference-estimation", 
+              "Two-Period Difference-in-Difference", 
+              class = "bodylinks"
+            ), 
+            " is a statistical method used to estimate causal effects by comparing changes in outcomes between a treatment group and a control group over two time periods: before and after the intervention. It accounts for time-invariant differences between the groups and isolates the impact of the intervention by assuming that, in the absence of treatment, both groups would follow parallel trends over time. This method is particularly useful when randomization is not feasible. Here we use linear regression as the estimation method to explore."
+          ),
+          
           # Box for Regression Model
           box(
             title = strong("Regression Model"),
@@ -117,22 +112,24 @@ ui <- list(
             collapsed = TRUE,
             width = '100%',
             p("The Diff-in-Diff regression model is used to estimate the causal effect of a treatment. The general form of the Diff-in-Diff regression is:"),
-            HTML("<p>\\[
-          {Y}_{it} = \\hat{\\beta}_0 + \\hat{\\beta}_1 t + \\hat{\\beta}_2 G_i + \\hat{\\beta}_3 (t \\times I_t \\times G_i)
-          \\]</p>"),
+            p("\\[
+Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times G_i) + \\epsilon_{it}
+\\]"),
             p("Where:"),
-            HTML("
-    <ul>
-            <li><strong>\\(\\hat{Y}_{it}\\)</strong>: Estimated outcome for individual i at time t.</li>
-            <li><strong>t</strong>: Continuous time variable.</li>
-            <li><strong>\\(G_i\\)</strong>: Group indicator (1 for the treatment group, 0 for the control group).</li>
-            <li><strong>\\(I_t\\)</strong>: Time indicator (1 for the post-treatment period, 0 for the pre-treatment period).</li>
-            <li><strong>\\(\\hat{\\beta}_0\\)</strong>: Estimated intercept.</li>
-            <li><strong>\\(\\hat{\\beta}_1\\)</strong>: Estimated coefficient for the time trend.</li>
-            <li><strong>\\(\\hat{\\beta}_2\\)</strong>: Estimated coefficient for the treatment group.</li>
-            <li><strong>\\(\\hat{\\beta}_3\\)</strong>: Estimated coefficient for the interaction term, which reflects the impact of the treatment on the treated group, controlling for time trends.</li>
-          </ul>
-  ")
+            tags$ol(
+              tags$li("\\(Y_{it}\\): Outcome for individual i at time t."),
+              tags$li("\\(t\\): Continuous time variable."),
+              tags$li("\\(G_i\\): Group indicator (1 for the treatment group, 0 for the control group)."),
+              tags$li("\\(I_t\\): Time indicator (1 for the post-treatment period, 0 for the pre-treatment period)."),
+              tags$li("\\(\\beta_0\\): Intercept."),
+              tags$li("\\(\\beta_1\\): Coefficient for the time trend."),
+              tags$li("\\(\\beta_2\\): Coefficient for the treatment group."),
+              tags$li("\\(\\beta_3\\): Coefficient for the interaction term, which reflects the impact of the treatment on the treated group, controlling for time trends."),
+              tags$li("\\(\\epsilon_{it}\\) represents the error term, capturing unobserved factors that may affect the outcome but are not included in the model.")
+            ),
+            p("\\(\\text{Estimator}\\): If the regression is true, the causal effect of the treatment
+              is given by \\(\\beta_3\\), which is estimated by \\(\\hat{\\beta}_3\\) using an analysis of sampling design.")
+            
           ),
 
           box(
@@ -141,27 +138,33 @@ ui <- list(
             collapsible = TRUE,
             collapsed = TRUE,
             width = '100%',
-            HTML("<strong>1. Correlation vs. Causation:</strong>
-        <p>Correlation indicates a relationship between two variables, but it does not mean one causes the other. Causation, however, implies that one event leads directly to another. Causal inference aims to establish this cause-and-effect relationship.</p>
-
-        <strong>2. Counterfactuals:</strong>
-        <p>Counterfactuals ask what would have happened if the treatment had not occurred. In causal inference, we try to estimate the unobserved outcome for individuals who were treated.</p>
-
-        <strong>3. Potential Outcomes Framework:</strong>
-        <p>This framework models two potential outcomes: one if the individual is treated and one if not treated. The causal effect is the difference between these two outcomes, but only one is observed, so we estimate the average effect.</p>
-
-        <strong>4. Confounding Variables:</strong>
-        <p>Confounders influence both the treatment and the outcome, potentially biasing results. Accounting for confounders is critical for estimating the true causal effect.</p>
-
-        <strong>5. Assumptions for Causal Inference:</strong>
-        <p>Causal inference relies on assumptions like no unmeasured confounding, consistency (the observed outcome matches the potential outcome under treatment), and SUTVA (no interference between units).</p>
-
-        <strong>6. Estimation of Causal Effects:</strong>
-        <p>We estimate treatment effects such as the Average Treatment Effect (ATE) for the whole population or the Average Treatment Effect on the Treated (ATT) for those who actually received treatment. Heterogeneous effects capture variations across subgroups.
-                 </p>")
+            tags$ol(
+              tags$li(
+                tags$strong("Correlation vs. Causation:"),
+                p("Correlation indicates a relationship between two variables, but it does not mean one causes the other. Causation, however, implies that one event leads directly to another. Causal inference aims to establish this cause-and-effect relationship.")
+              ),
+              tags$li(
+                tags$strong("Counterfactuals:"),
+                p("Counterfactuals ask what would have happened if the treatment had not occurred. In causal inference, we try to estimate the unobserved outcome for individuals who were treated.")
+              ),
+              tags$li(
+                tags$strong("Potential Outcomes Framework:"),
+                p("This framework models two potential outcomes: one if the individual is treated and one if not treated. The causal effect is the difference between these two outcomes, but only one is observed, so we estimate the average effect.")
+              ),
+              tags$li(
+                tags$strong("Confounding Variables:"),
+                p("Confounders influence both the treatment and the outcome, potentially biasing results. Accounting for confounders is critical for estimating the true causal effect.")
+              ),
+              tags$li(
+                tags$strong("Assumptions for Causal Inference:"),
+                p("Causal inference relies on assumptions like no unmeasured confounding, consistency (the observed outcome matches the potential outcome under treatment), and SUTVA (no interference between units).")
+              ),
+              tags$li(
+                tags$strong("Estimation of Causal Effects:"),
+                p("We estimate treatment effects such as the Average Treatment Effect (ATE) for the whole population or the Average Treatment Effect on the Treated (ATT) for those who actually received treatment. Heterogeneous effects capture variations across subgroups.")
+              )
+            )
           ),
-
-
 
           box(
             title = strong("Parallel Trends Assumption"),
@@ -169,19 +172,23 @@ ui <- list(
             collapsible = TRUE,
             collapsed = TRUE,
             width = '100%',
-            p("The Parallel Trends Assumption ensures that, in the absence of treatment, the average difference between the treatment and control groups remains constant over time."),
-
-            p("Testing the Assumption:"),
-            p("Visual inspection is the most common method to test the assumption. If the treatment and control groups exhibit parallel trends in the pre-intervention period, this assumption holds."),
-
-            p("Statistical tests can also be used to formally test for differences in pre-intervention trends."),
-
-            p("If the assumption is violated:"),
-            p("The Difference-in-Difference (Diff-in-Diff) model may yield biased estimates of the treatment effect.")
+            tags$ol(
+              tags$li("The Parallel Trends Assumption ensures that, 
+                      in the absence of treatment, the average difference 
+                      between the treatment and control groups remains constant over time."),
+              
+              tags$li(tags$strong("Testing the Assumption:"),
+              p("Visual inspection is the most common method to test th
+                        e assumption. If the treatment and control groups exhibit 
+                        parallel trends in the pre-intervention period, this assumption
+                        holds.Statistical tests can also be used to formally test for 
+                        differences in pre-intervention trends.")),
+              tags$li(tags$strong("If the assumption is violated:"),
+              p("The Difference-in-Difference (Diff-in-Diff) model may yield biased estimates of the treatment effect.")
+              )
+            )
 
           ),
-
-
 
           box(
             title = strong("Exchangeability Assumption"),
@@ -189,25 +196,28 @@ ui <- list(
             collapsible = TRUE,
             collapsed = TRUE,
             width = '100%',
-            p("Exchangeability of the error terms refers to the assumption that
+          tags$ol(
+            tags$li("Exchangeability of the error terms refers to the assumption that
             there are no systematic differences
               between the treatment and control groups (beyond the parallel
               trends assumption), other than the treatment itself. For example,
               this says that there is no confounding, such as what would occur
               with factors that affect both treatment group assignment and the
               outcome in the absence of treatment."),
-
-            p("Testing the Assumption:"),
-            p("Exchangeability is assumed to be satisfied through the design of the study.While it cannot be directly tested,
-            you can compare pre-treatment characteristics between the treatment and control groups to check for balance. "),
-
-            p("If the assumption is violated:"),
-            p("If exchangeability is violated, the estimated treatment effect may be biased, as there could be confounding
-       factors that affect both treatment assignment and the outcome. ")
-          ),
-
-
-
+            
+            tags$li(tags$strong("Testing the Assumption:"),
+                    p("Exchangeability is assumed to be satisfied 
+                    through the design of the study.While it cannot be directly tested,
+                    you can compare pre-treatment characteristics between 
+                    the treatment and control groups to check for balance.")),
+            tags$li(tags$strong("If the assumption is violated:"),
+                    p("If exchangeability is violated, the estimated treatment 
+                    effect may be biased, as there could be confounding
+                    factors that affect both treatment assignment and the outcome.")
+            )
+          )
+        ),
+        
           box(
             title = strong("Additional Assumptions"),
             status = "primary",
@@ -223,10 +233,13 @@ ui <- list(
               of errors, homoscedasticity, no multicollinearity, and normality of
               residuals. Ensuring these assumptions hold is crucial for the accuracy
               of your regression results."),
-            p(HTML("In this app, we assume that these regression assumptions are held.
-            However, if you'd like to further explore and check these assumptions,
-            visit the <a href='https://psu-eberly.shinyapps.io/Assumptions/' class='
-            bodylinks'>Regression Assumptions</a> app."))
+            p("In this app, we assume that these regression assumptions are held. 
+   However, if you'd like to further explore and check these assumptions, 
+   visit the", tags$a(
+     href = "https://psu-eberly.shinyapps.io/Assumptions/", 
+     "Regression Assumptions", 
+     class = "bodylinks"
+   ), "app.")
           )
         ),
 
@@ -237,8 +250,6 @@ ui <- list(
         #### Set up an Explore 1 Page ----
         tabItem(
           tabName = "explore1",
-          withMathJax(),
-
           h2("Explore Assumptions"),
           p("This page allows you to explore key assumptions of a Two-Period
             Difference-in-Difference model, specifically focusing on the Parallel
@@ -348,7 +359,6 @@ ui <- list(
         #### Set up the References Page ----
         tabItem(
           tabName = "references",
-          withMathJax(),
           h2("References"),
           p(
             class = "hangingindent",
