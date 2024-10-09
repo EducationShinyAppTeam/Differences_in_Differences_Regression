@@ -138,7 +138,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
               tags$li("\\(\\epsilon_{it}\\) represents the error term, capturing unobserved factors that may affect the outcome but are not included in the model.")
             ),
             p("\\(\\text{Estimator}\\): If the regression is true, the causal effect of the treatment
-              is given by \\(\\beta_3\\), which is estimated by \\(\\hat{\\beta}_3\\) using an analysis of sampling design.")
+              is given by \\(\\beta_3\\), which is estimated by \\(\\hat{\\beta}_3\\) using an analysis appropriate for the sampling design.")
             
           ),
           
