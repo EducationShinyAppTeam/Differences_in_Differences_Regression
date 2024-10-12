@@ -80,7 +80,7 @@ ui <- list(
           br(),
           h2("Acknowledgements"),
           p(
-            "This version of the app was originally developed and coded by Xin(Michael) Yun(2024).",
+            "This version of the app was originally developed and coded by Xin(Michael) Yun(2024), special thank you to Muzhi Liu.",
             br(),
             br(),
             "Cite this app as:",
