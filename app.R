@@ -4,6 +4,10 @@ library(shinydashboard)
 library(shinyBS)
 library(shinyWidgets)
 library(boastUtils)
+library(ggplot2)
+library(openxlsx)
+library(shinyjs)
+
 
 # Load additional dependencies and setup functions
 # source("global.R")
@@ -15,12 +19,12 @@ ui <- list(
     skin = "blue",
     ### Create the app header ----
     dashboardHeader(
-      title = "App Template", # You may use a shortened form of the title here
+      title = "Two-Period Diff-in-Diff",
       titleWidth = 250,
       tags$li(class = "dropdown", actionLink("info", icon("info"))),
       tags$li(
         class = "dropdown",
-        boastUtils::surveyLink(name = "App_Template")
+        boastUtils::surveyLink(name = "Differences_in_Differences_Regression")
       ),
       tags$li(
         class = "dropdown",
@@ -38,11 +42,9 @@ ui <- list(
         id = "pages",
         menuItem("Overview", tabName = "overview", icon = icon("gauge-high")),
         menuItem("Prerequisites", tabName = "prerequisites", icon = icon("book")),
-        menuItem("Example", tabName = "example", icon = icon("book-open-reader")),
-        menuItem("Explore", tabName = "explore", icon = icon("wpexplorer")),
+        menuItem("Explore Assumptions", tabName = "explore1", icon = icon("wpexplorer")),
+        menuItem("Explore Interpretations", tabName = "explore2", icon = icon("wpexplorer")),
         menuItem("Challenge", tabName = "challenge", icon = icon("gears")),
-        menuItem("Game", tabName = "game", icon = icon("gamepad")),
-        menuItem("Wizard", tabName = "wizard", icon = icon("hat-wizard")),
         menuItem("References", tabName = "references", icon = icon("leanpub"))
       ),
       tags$div(
@@ -56,29 +58,26 @@ ui <- list(
         #### Set up the Overview Page ----
         tabItem(
           tabName = "overview",
-          withMathJax(),
-          h1("Sample Application for BOAST Apps"), # This should be the full name.
-          p("This is a sample Shiny application for BOAST. Remember, this page
-            will act like the front page (home page) of your app. Thus you will
-            want to have this page catch attention and describe (in general terms)
-            what the user can do in the rest of the app."),
+          h1("Two Period Differences-in-Differences Regression"),
+          p("This app is designed to help students explore and understand the
+            core concepts, assumptions of Two-Period Diff-in-Diff by experimenting
+            with simulation."),
           h2("Instructions"),
-          p("This information will change depending on what you want to do."),
+          p("Explore the app based on the following instructions:"),
           tags$ol(
             tags$li("Review any prerequiste ideas using the Prerequistes tab."),
-            tags$li("Explore the Exploration Tab."),
-            tags$li("Challenge yourself."),
-            tags$li("Play the game to test how far you've come.")
+            tags$li("Explore the assumptions by the Explore Assumptions Tab."),
+            tags$li("Explore the interpretations by the Explore Interpretations Tab.")
           ),
           ##### Go Button--location will depend on your goals
           div(
             style = "text-align: center;",
             bsButton(
-              inputId = "go1",
-              label = "GO!",
-              size = "large",
-              icon = icon("bolt"),
-              style = "default"
+              inputId = "go",
+              label = "Prerequisites",
+              icon = icon("book"),
+              style = "default",
+              size = "large"
             )
           ),
           ##### Create two lines of space
@@ -86,11 +85,7 @@ ui <- list(
           br(),
           h2("Acknowledgements"),
           p(
-            "This version of the app was developed and coded by Neil J.
-            Hatfield  and Robert P. Carey, III.",
-            br(),
-            "We would like to extend a special thanks to the Shiny Program
-            Students.",
+            "This version of the app was originally developed and coded by Xin(Michael) Yun(2024), special thank you to Muzhi Liu.",
             br(),
             br(),
             "Cite this app as:",
@@ -98,7 +93,7 @@ ui <- list(
             citeApp(),
             br(),
             br(),
-            div(class = "updated", "Last Update: 11/8/2022 by NJH.")
+            div(class = "updated", "Last Update: 10/07/2024 by XY.")
           )
         ),
         #### Set up the Prerequisites Page ----
@@ -106,141 +101,682 @@ ui <- list(
           tabName = "prerequisites",
           withMathJax(),
           h2("Prerequisites"),
-          p("In order to get the most out of this app, please review the
-            following:"),
-          tags$ul(
-            tags$li("Pre-req 1--Technical/Conceptual Prerequisites are ideas that
-                    users need to have in order to engage with your app fully."),
-            tags$li("Pre-req 2--Contextual Prerequisites refer to any information
-                    about a context in your app that will enrich a user's
-                    understandings."),
-            tags$li("Pre-req 3"),
-            tags$li("Pre-req 4")
+          p("What is Two-Period Diff-in-Diff? ", 
+            tags$a(
+              href = "https://www.publichealth.columbia.edu/research/population-health-methods/difference-difference-estimation", 
+              "Two-Period Difference-in-Difference", 
+              class = "bodylinks"
+            ), 
+            " is a statistical method used to estimate causal effects by comparing changes in outcomes between a treatment group and a control group over two time periods: before and after the intervention. It accounts for time-invariant differences between the groups and isolates the impact of the intervention by assuming that, in the absence of treatment, both groups would follow parallel trends over time. This method is particularly useful when randomization is not feasible. Here we use linear regression as the estimation method to explore."
           ),
-          p("Notice the use of an unordered list; users can move through the
-            list any way they wish."),
+          
+          # Box for Regression Model
           box(
-            title = strong("Null Hypothesis Significance Tests (NHSTs)"),
+            title = strong("Regression Model"),
             status = "primary",
             collapsible = TRUE,
             collapsed = TRUE,
             width = '100%',
-            "In the Confirmatory Data Analysis tradition, null hypothesis
-            significance tests serve as a critical tool to confirm that a
-            particular theoretical model describes our data and to make a
-            generalization from our sample to the broader population
-            (i.e., make an inference). The null hypothesis often reflects the
-            simpler of two models (e.g., 'no statistical difference',
-            'there is an additive difference of 1', etc.) that we will use to
-            build a sampling distribution for our chosen estimator. These
-            methods let us test whether our sample data are consistent with this
-            simple model (null hypothesis)."
+            
+            # Wrap the entire content in withMathJax() to enable LaTeX rendering
+            
+            # Description of the Diff-in-Diff regression model
+            p("The Diff-in-Diff regression model is used to estimate the causal effect of a treatment. The general form of the Diff-in-Diff regression is:"),
+            
+            # LaTeX equation rendered with \[ \] for block display
+            p("\\[
+Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times G_i) + \\epsilon_{it}
+\\]"),
+            
+            # Explanation of the terms used in the regression equation
+            p("Where:"),
+            
+            tags$ol(
+              tags$li("\\(Y_{it}\\): Outcome for individual i at time t."),
+              tags$li("\\(t\\): Continuous time variable."),
+              tags$li("\\(G_i\\): Group indicator (1 for the treatment group, 0 for the control group)."),
+              tags$li("\\(I_t\\): Time indicator (1 for the post-treatment period, 0 for the pre-treatment period)."),
+              tags$li("\\(\\beta_0\\): Intercept."),
+              tags$li("\\(\\beta_1\\): Coefficient for the time trend."),
+              tags$li("\\(\\beta_2\\): Coefficient for the treatment group."),
+              tags$li("\\(\\beta_3\\): Coefficient for the interaction term, which reflects the impact of the treatment on the treated group, controlling for time trends."),
+              tags$li("\\(\\epsilon_{it}\\) represents the error term, capturing unobserved factors that may affect the outcome but are not included in the model.")
+            ),
+            p("\\(\\text{Estimator}\\): If the regression is true, the causal effect of the treatment
+              is given by \\(\\beta_3\\), which is estimated by \\(\\hat{\\beta}_3\\) using an analysis appropriate for the sampling design.")
+            
           ),
+          
+          
+          
           box(
-            title = strong(tags$em("p"), "-values"),
+            title = strong("Causal Inference Concepts"),
             status = "primary",
             collapsible = TRUE,
-            collapsed = FALSE,
+            collapsed = TRUE,
             width = '100%',
-            "The probability that our selected estimator takes on a value at
-            least as extreme as what we observed given our null hypothesis. If
-            we were to carry out our study infinitely many times and the null
-            hypothesis accurately modeled what we're studying, then we would
-            expect for our estimator to produce a value at least as extreme as
-            what we have seen 100*(p-value)% of the time. The larger the
-            p-value, the more often we would expect our estimator to take on a
-            value at least as extreme as what we've seen; the smaller, the less
-            often."
+            tags$ol(
+              tags$li(
+                tags$strong("Correlation vs. Causation:"),
+                p("Correlation indicates a relationship between two variables, but it does not mean one causes the other. Causation, however, implies that one event leads directly to another. Causal inference aims to establish this cause-and-effect relationship.")
+              ),
+              tags$li(
+                tags$strong("Counterfactuals:"),
+                p("Counterfactuals ask what would have happened if the treatment had not occurred. In causal inference, we try to estimate the unobserved outcome for individuals who were treated.")
+              ),
+              tags$li(
+                tags$strong("Potential Outcomes Framework:"),
+                p("This framework models two potential outcomes: one if the individual is treated and one if not treated. The causal effect is the difference between these two outcomes, but only one is observed, so we estimate the average effect.")
+              ),
+              tags$li(
+                tags$strong("Confounding Variables:"),
+                p("Confounders influence both the treatment and the outcome, potentially biasing results. Accounting for confounders is critical for estimating the true causal effect.")
+              ),
+              tags$li(
+                tags$strong("Assumptions for Causal Inference:"),
+                p("Causal inference relies on assumptions like no unmeasured confounding, consistency (the observed outcome matches the potential outcome under treatment), and SUTVA (no interference between units).")
+              ),
+              tags$li(
+                tags$strong("Estimation of Causal Effects:"),
+                p("We estimate treatment effects such as the Average Treatment Effect (ATE) for the whole population or the Average Treatment Effect on the Treated (ATT) for those who actually received treatment. Heterogeneous effects capture variations across subgroups.")
+              )
+            )
+          ),
+          
+          box(
+            title = strong("Parallel Trends Assumption"),
+            status = "primary",
+            collapsible = TRUE,
+            collapsed = TRUE,
+            width = '100%',
+            tags$ol(
+              tags$li("The Parallel Trends Assumption ensures that, 
+                      in the absence of treatment, the average difference 
+                      between the treatment and control groups remains constant over time."),
+              
+              tags$li(tags$strong("Testing the Assumption:"),
+                      p("Visual inspection is the most common method to test th
+                        e assumption. If the treatment and control groups exhibit 
+                        parallel trends in the pre-intervention period, this assumption
+                        holds.Statistical tests can also be used to formally test for 
+                        differences in pre-intervention trends.")),
+              tags$li(tags$strong("If the assumption is violated:"),
+                      p("The Difference-in-Difference (Diff-in-Diff) model may yield biased estimates of the treatment effect.")
+              )
+            )
+            
+          ),
+          
+          box(
+            title = strong("Exchangeability Assumption"),
+            status = "primary",
+            collapsible = TRUE,
+            collapsed = TRUE,
+            width = '100%',
+            tags$ol(
+              tags$li("Exchangeability of the error terms refers to the assumption that
+            there are no systematic differences
+              between the treatment and control groups (beyond the parallel
+              trends assumption), other than the treatment itself. For example,
+              this says that there is no confounding, such as what would occur
+              with factors that affect both treatment group assignment and the
+              outcome in the absence of treatment."),
+              
+              tags$li(tags$strong("Testing the Assumption:"),
+                      p("Exchangeability is assumed to be satisfied 
+                    through the design of the study.While it cannot be directly tested,
+                    you can compare pre-treatment characteristics between 
+                    the treatment and control groups to check for balance.")),
+              tags$li(tags$strong("If the assumption is violated:"),
+                      p("If exchangeability is violated, the estimated treatment 
+                    effect may be biased, as there could be confounding
+                    factors that affect both treatment assignment and the outcome.")
+              )
+            )
+          ),
+          
+          box(
+            title = strong("Additional Assumptions"),
+            status = "primary",
+            collapsible = TRUE,
+            collapsed = TRUE,
+            width = '100%',
+            p("In addition to the specific assumptions of the
+              Two-Period Difference-in-Difference (Diff-in-Diff) model,
+              other regression assumptions will also apply to Diff-in-Diff models
+              as appropriate for the study design and the analysis method used
+              for the linear regression."),
+            p("These assumptions may include things like linearity, independence
+              of errors, homoscedasticity, no multicollinearity, and normality of
+              residuals. Ensuring these assumptions hold is crucial for the accuracy
+              of your regression results."),
+            p("In this app, we assume that these regression assumptions are held. 
+   However, if you'd like to further explore and check these assumptions, 
+   visit the", tags$a(
+     href = "https://psu-eberly.shinyapps.io/Assumptions/", 
+     "Regression Assumptions", 
+     class = "bodylinks"
+   ), "app.")
           )
         ),
-        #### Note: you must have at least one of the following pages. You might
-        #### have more than one type and/or more than one of the same type. This
-        #### will be up to you and the goals for your app.
-        #### Set up an Explore Page ----
-        tabItem(
-          tabName = "explore",
-          withMathJax(),
-          h2("Explore the Concept"),
-          p("This page should include something for the user to do, the more
-            active and engaging, the better. The purpose of this page is to help
-            the user build a productive understanding of the concept your app
-            is dedicated to."),
-          p("Common elements include graphs, sliders, buttons, etc."),
-          p("The following comes from the NHST Caveats App:"),
-        ),
-        #### Set up a Challenge Page ----
-        tabItem(
-          tabName = "challenge",
-          withMathJax(),
-          h2("Challenge Yourself"),
-          p("The general intent of a Challenge page is to have the user take
-            what they learned in an Exploration and apply that knowledge in new
-            contexts/situations. In essence, to have them challenge their
-            understanding by testing themselves."),
-          p("What this page looks like will be up to you. Something you might
-            consider is to re-create the tools of the Exploration page and then
-            a list of questions for the user to then answer.")
-        ),
-        #### Set up a Game Page ----
-        tabItem(
-          tabName = "game",
-          withMathJax(),
-          h2("Practice/Test Yourself with [Type of Game]"),
-          p("On this type of page, you'll set up a game for the user to play.
-            Game types include Tic-Tac-Toe, Matching, and a version Hangman to
-            name a few. If you have ideas for new game type, please let us know.")
-        ),
-        #### Set up a Wizard Page ----
-        tabItem(
-          tabName = "wizard",
-          withMathJax(),
-          h2("Wizard"),
-          p("This page will have a series of inputs and questions for the user to
-            answer/work through in order to have the app create something. These
-            types of Activity pages are currently rare as we try to avoid
-            creating 'calculators' in the BOAST project.")
-        ),
-        #### Set up the References Page ----
-        tabItem(
-          tabName = "references",
-          withMathJax(),
-          h2("References"),
-          p("You'll need to fill in this page with all of the appropriate
-            references for your app."),
-          p(
-            class = "hangingindent",
-            "Bailey, E. (2015). shinyBS: Twitter bootstrap components for shiny.
-            (v0.61). [R package]. Available from
-            https://CRAN.R-project.org/package=shinyBS"
-          ),
-          br(),
-          br(),
-          br(),
-          boastUtils::copyrightInfo()
-        )
+   
+   
+   #### Note: you must have at least one of the following pages. You might
+   #### have more than one type and/or more than one of the same type. This
+   #### will be up to you and the goals for your app.
+   #### Set up an Explore 1 Page ----
+   tabItem(
+     tabName = "explore1",
+     h2("Explore Assumptions"),
+     p("This page allows you to explore key assumptions of a Two-Period
+            Difference-in-Difference model, specifically focusing on the Parallel
+            Trends assumption and Exchangeability Assumption. You can use the sliders
+            to adjust the parameters. The graphs will automatically update to show how
+            these changes influence the model's results, helping you understand whether
+            the assumptions hold or are violated in different scenarios."),
+     p(strong("Note:"), " The vertical black line represents the intervention year. 
+   The left part is pre-intervention, and the right part is post-intervention. 
+   The red dashed line represents the Treatment Group, 
+   while the blue solid line represents the Control Group."),
+     
+     # Main content for exploring assumptions
+     fluidPage(
+       tabsetPanel(
+         id = "whichAssumption",
+         type = "tabs",
+         
+         ##### Parallel Trends Assumption ----
+         tabPanel(
+           title = "Parallel Trends",
+           br(),
+           
+           # Input column (left side) ----
+           column(
+             width = 4,
+             wellPanel(
+               tags$strong("Parallel Trends Assumption"),
+               
+               # Sliders for trend adjustment
+               sliderInput(
+                 inputId = "trend_control",
+                 label = "Control Group Trend Slope (Pre Intervention):",
+                 min = 0.5,
+                 max = 3,
+                 value = 1.5,
+                 step = 0.1
+               ),
+               sliderInput(
+                 inputId = "trend_treatment",
+                 label = "Treatment Group Trend Slope (Pre Intervention):",
+                 min = 0.5,
+                 max = 3,
+                 value = 1.5,
+                 step = 0.1
+               ),
+               sliderInput(
+                 inputId = "treatment_effect",
+                 label = "Treatment Effect (Post Intervention):",
+                 min = 0,
+                 max = 5,
+                 value = 2,
+                 step = 0.5
+               )
+             )
+           ),
+           
+           # Output column (right side) ----
+           column(
+             width = 8,
+             plotOutput("didPlot", height = "400px"),
+             br(),
+             uiOutput('assumptionCheck')
+           )
+         ),
+         ##### Exchangeability Assumption ----
+         tabPanel(
+           title = "Exchangeability",
+           br(),
+           
+           # Input column (left side) ----
+           column(
+             width = 4,
+             wellPanel(
+               tags$strong("Exchangeability Assumption"),
+               
+               # Slider for initial outcome differences (baseline difference)
+               sliderInput(
+                 inputId = "initial_diff",
+                 label = "Initial Outcome Difference Between Groups (Pre Intervention):",
+                 min = -5,
+                 max = 5,
+                 value = 0,
+                 step = 0.5
+               ),
+               
+               # Slider for confounder effect (simulating trend difference)
+               sliderInput(
+                 inputId = "confounder",
+                 label = "Impact of Confounding Variable on Treatment Group:",
+                 min = 0,
+                 max = 5,
+                 value = 0,
+                 step = 0.5
+               )
+             )
+           ),
+           
+           # Output column (right side) ----
+           column(
+             width = 8,
+             plotOutput("plotExchangeability", height = "400px"),
+             br(),
+             uiOutput("exchangeabilityCheck")
+           )
+         )
+       )
+     )
+   ),
+   #### Set up the Explore Interpretation Page ----
+   tabItem(
+     tabName = "explore2",
+     h2("Explore Interpretations"),
+     p("To start your Diff-in-Diff exploration, we will use data from the paper \"If not now, when? Climate disaster and the Green vote following the 2021 Germany floods\" by Susanna Garside and Haoyu Zhai. This study examines the short-term electoral effects of the 2021 Germany floods on voter support for the Green Party, using a difference-in-differences (DID) design."),
+     p("The interactive components in this R Shiny app will help you understand how to interpret the Diff-in-Diff model results. You can manipulate various aspects of the model to see how different parameters impact the interpretation of the results."),
+     
+     
+     # Main content for interpreting Diff-in-Diff analysis
+     fluidPage(
+       tabsetPanel(
+         id = "diff_in_diff_tabs",
+         type = "tabs",
+         
+         ##### Treatment Effect Over Time ----
+         tabPanel(
+           title = "Treatment Effect Over Time",
+           br(),
+           column(
+             width = 4,
+             wellPanel(
+               tags$strong("Visualizing Treatment Effect Over Time"),
+               sliderInput(
+                 inputId = "treatment_intensity",
+                 label = "Adjust Treatment Intensity:",
+                 min = 0,
+                 max = 10,
+                 value = 5,
+                 step = 0.5
+               ),
+               checkboxInput(
+                 inputId = "show_confidence_interval",
+                 label = "Show Confidence Interval",
+                 value = TRUE
+               )
+             )
+           ),
+           column(
+             width = 8,
+             plotOutput("treatmentEffectPlot", height = "400px"),
+             br(),
+             uiOutput("treatmentEffectDescription")
+           )
+         ),
+         
+         ##### Covariate Balance Check ----
+         tabPanel(
+           title = "Covariate Balance Check",
+           br(),
+           column(
+             width = 4,
+             wellPanel(
+               tags$strong("Checking Covariate Balance"),
+               selectInput(
+                 inputId = "covariate",
+                 label = "Select Covariate to Check Balance:",
+                 choices = c("Income", "Education", "Age", "Population Density"),
+                 selected = "Income"
+               )
+             )
+           ),
+           column(
+             width = 8,
+             plotOutput("covariateBalancePlot", height = "400px"),
+             br(),
+             uiOutput("covariateBalanceDescription")
+           )
+         ),
+         
+         ##### Robustness Checks ----
+         tabPanel(
+           title = "Robustness Checks",
+           br(),
+           column(
+             width = 4,
+             wellPanel(
+               tags$strong("Performing Robustness Checks"),
+               checkboxGroupInput(
+                 inputId = "robustness_methods",
+                 label = "Select Robustness Checks to Perform:",
+                 choices = c("Placebo Test", "Alternative Specifications", "Sensitivity Analysis"),
+                 selected = "Placebo Test"
+               )
+             )
+           ),
+           column(
+             width = 8,
+             plotOutput("robustnessPlot", height = "400px"),
+             br(),
+             uiOutput("robustnessDescription")
+           )
+         ),
+         
+         ##### Heterogeneous Effects ----
+         tabPanel(
+           title = "Heterogeneous Effects",
+           br(),
+           column(
+             width = 4,
+             wellPanel(
+               tags$strong("Exploring Heterogeneous Effects"),
+               selectInput(
+                 inputId = "heterogeneity_factor",
+                 label = "Select Factor for Heterogeneity:",
+                 choices = c("Region", "Income Level", "Severity of Flooding"),
+                 selected = "Region"
+               ),
+               sliderInput(
+                 inputId = "heterogeneity_intensity",
+                 label = "Adjust Intensity of Heterogeneity Effect:",
+                 min = 0,
+                 max = 5,
+                 value = 2,
+                 step = 0.5
+               )
+             )
+           ),
+           column(
+             width = 8,
+             plotOutput("heterogeneityEffectPlot", height = "400px"),
+             br(),
+             uiOutput("heterogeneityEffectDescription")
+           )
+         )
+       )
+     )
+   ),
+   #### Set up the Challenge Page ----
+   tabItem(
+     tabName = "challenge",
+     h2("Challenge"),
+     p("Welcome to the Diff-in-Diff Challenge! This page allows you to test your understanding of Diff-in-Diff models through a series of multiple-choice questions."),
+     p("Use these quizzes to check your knowledge about the assumptions and interpretations of Diff-in-Diff analysis."),
+     
+     # Main content for Diff-in-Diff Challenge
+     fluidPage(
+       tabsetPanel(
+         id = "challenge_tabs",
+         type = "tabs",
+         
+         ##### Assumption Quiz ----
+         tabPanel(
+           title = "Assumption Quiz",
+           br(),
+           uiOutput("quiz_ui")
+         )
+       )
+     )
+   ),
+   
+   
+   
+   
+   #### Set up the References Page ----
+   tabItem(
+     tabName = "references",
+     h2("References"),
+     p(
+       class = "hangingindent",
+       "Attali, D., & Edwards, T. (2024). shinyWidgets: Custom inputs widgets for shiny. (v0.8.7). [R package]. Available from https://CRAN.R-project.org/package=shinyWidgets"
+     ),
+     
+     p(
+       class = "hangingindent",
+       "Bailey, E. (2022). shinyBS: Twitter bootstrap components for shiny. (v0.61.1). [R package]. Available from https://CRAN.R-project.org/package=shinyBS"
+     ),
+     
+     p(
+       class = "hangingindent",
+       "Barrowman, N. (2014). Correlation, causation, and confusion. The New Atlantis, 43, 23–44. http://www.jstor.org/stable/43551404"
+     ),
+     
+     p(
+       class = "hangingindent",
+       "Chang, W., & Borges Ribeiro, B. (2021). shinydashboard: Create dashboards with 'Shiny'. (v0.7.2). [R package]. Available from https://CRAN.R-project.org/package=shinydashboard"
+     ),
+     
+     p(
+       class = "hangingindent",
+       "Chang, W., Cheng, J., Allaire, J., Xie, Y., & McPherson, J. (2024). shiny: Web application framework for R. (v1.9.1). [R package]. Available from https://CRAN.R-project.org/package=shiny"
+     ),
+     
+     p(
+       class = "hangingindent",
+       "Columbia University Mailman School of Public Health. (n.d.). Difference-in-difference estimation. Columbia University. https://www.publichealth.columbia.edu/research/population-health-methods/difference-difference-estimation"
+     ),
+     
+     p(
+       class = "hangingindent",
+       "Egami, N. (2024). Difference-in-Differences Design. POLS-GU4722: Statistical Theory and Causal Inference, Columbia University, Spring 2024."
+     ),
+     
+     p(
+       class = "hangingindent",
+       "Wickham, H. (2024). ggplot2: Elegant graphics for data analysis. Springer-Verlag New York. Available from https://CRAN.R-project.org/package=ggplot2"
+     ),
+     
+     br(),
+     br(),
+     br(),
+     boastUtils::copyrightInfo()
+   )
       )
     )
   )
 )
 
-# Define server logic ----
+# Define server logic
 server <- function(input, output, session) {
-
-  ## Set up Info button ----
+  
+  # Info button logic
+  observeEvent(input$info, {
+    sendSweetAlert(
+      session = session,
+      type = "info",
+      title = "Information",
+      text = "This App helps you explore different assumptions using the Diff-in-Diff model."
+    )
+  })
+  
+  ####button###
   observeEvent(
-    eventExpr = input$info,
+    eventExpr = input$go,
     handlerExpr = {
-      sendSweetAlert(
+      updateTabItems(
         session = session,
-        type = "info",
-        title = "Information",
-        text = "This App Template will help you get started building your own app"
+        inputId = "pages",
+        selected = "prerequisites")
+    })
+  
+  # Generate data for Parallel Trends Assumption
+  generate_data <- reactive({
+    years <- 1959:1969  # Simulated years
+    intervention_year <- 1964  # The year of intervention
+    
+    control_pre <- 8  # Baseline for control group
+    treatment_pre <- 7  # Baseline for treatment group
+    
+    control_slope <- input$trend_control  # Control group trend slope
+    treatment_slope <- input$trend_treatment  # Treatment group trend slope
+    treatment_effect <- input$treatment_effect  # Treatment effect applied after intervention year
+    
+    # Post-intervention treatment slope
+    if (treatment_effect == 0) {
+      treatment_slope_post <- control_slope  # If treatment effect is 0, post-intervention slope is the same as control group
+    } else {
+      treatment_slope_post <- treatment_slope + treatment_effect  # If treatment effect is non-zero, slope changes
+    }
+    
+    # Create data for control group (before and after intervention)
+    control_values <- control_pre + control_slope * (years - min(years))
+    
+    # Create data for treatment group (before and after intervention)
+    treatment_values_pre <- treatment_pre + treatment_slope * (years[years <= intervention_year] - min(years))
+    treatment_values_post <- treatment_pre + treatment_slope * (intervention_year - min(years)) +
+      treatment_slope_post * (years[years > intervention_year] - intervention_year)
+    
+    # Combine pre and post treatment values
+    treatment_values <- c(treatment_values_pre, treatment_values_post)
+    
+    # Combine all data into a data frame
+    data.frame(
+      year = rep(years, 2),
+      outcome = c(control_values, treatment_values),
+      group = factor(rep(c("Control Group", "Treatment Group"), each = length(years)))
+    )
+  })
+  
+  # Render the DID plot ----
+  output$didPlot <- renderPlot({
+    data <- generate_data()
+    intervention_year <- 1964  # The year of intervention
+    
+    # Plot using ggplot2
+    ggplot(data, aes(x = year, y = outcome, color = group, linetype = group)) +
+      geom_line(linewidth = 1.2) +
+      geom_vline(aes(xintercept = intervention_year), color = "black", linetype = "solid", linewidth = 1.2)+
+      
+      # Set the labels for title, x, and y axes
+      labs(title = "Parallel Trends Assumption", x= "Year",  y = "Outcome") +
+      theme_minimal() +
+      
+      # Manually set colors for Control and Treatment groups
+      scale_color_manual(values = c("Control Group" = "blue", "Treatment Group" = "red")) +  # Control = blue, Treatment = red
+      
+      # Manually set linetypes for Control and Treatment groups if needed
+      scale_linetype_manual(values = c("Control Group" = "solid", "Treatment Group" = "dashed")) + 
+      
+      
+      
+      # Remove x-axis numeric labels and ticks
+      theme(
+        axis.text.x = element_blank(),  # Hide x-axis text (numbers)
+        axis.ticks.x = element_blank(),  # Hide x-axis ticks
+        legend.position = "bottom",
+        legend.title = element_blank(),
+        axis.title.x = element_blank(),  # Completely remove x-axis title
+        axis.title.y = element_text(size = 20, face = "bold"),
+        axis.text = element_text(size = 16, face = "bold"),
+        legend.text = element_text(size = 16, face = "bold"),
+        plot.title = element_text(size = 22, face = "bold")
+      )
+    
+  })
+  
+  # Assumption Check for Parallel Trends
+  output$assumptionCheck <- renderUI({
+    if (input$trend_control == input$trend_treatment) {
+      p(
+        "Assumption Satisfied: The control and treatment groups have parallel trends before the intervention, meaning the assumption holds.",
+        style = "font-size:18px; font-weight:bold;"
+      )
+    } else {
+      p(
+        "Assumption Violated: The control and treatment groups do not follow parallel trends before the intervention, meaning the assumption is violated.",
+        style = "font-size:18px; font-weight:bold;"
       )
     }
-  )
-
-
+  })
+  
+  # Assumption Check for Exchangeability
+  output$exchangeabilityCheck <- renderUI({
+    if (input$confounder == 0) {
+      p("Exchangeability Assumption holds: No systematic differences between treatment and control groups.",
+        style = "font-size:18px; font-weight:bold;")
+    } else {
+      p("Exchangeability Assumption violated: Systematic differences between treatment and control groups exist. A confounding factor may explain the differences between outcomes, so Diff-in-Diff model has bias.",
+        style = "font-size:18px; font-weight:bold;")
+    }
+  })
+  
+  # Generate data for Exchangeability Assumption
+  generate_exchangeability_data <- reactive({
+    years <- 1959:1969
+    control_pre <- 8  # Baseline for control group
+    
+    # Apply user's input for initial difference and confounding effect
+    treatment_pre <- control_pre + input$initial_diff
+    confounder_effect <- input$confounder
+    
+    # Control group has constant slope
+    control_slope <- 1
+    
+    # Treatment group has an adjusted slope due to the confounder
+    treatment_slope <- 1 + confounder_effect
+    
+    # Create data for control group
+    control_values <- control_pre + control_slope * (years - min(years))
+    
+    # Create data for treatment group with bias from confounder
+    treatment_values <- treatment_pre + treatment_slope * (years - min(years))
+    
+    # Combine all data into a data frame
+    data.frame(
+      year = rep(years, 2),
+      outcome = c(control_values, treatment_values),
+      group = factor(rep(c("Control Group", "Treatment Group"), each = length(years)))
+    )
+  })
+  
+  # Plot for Exchangeability Assumption (Line Plot)
+  output$plotExchangeability <- renderPlot({
+    data <- generate_exchangeability_data()
+    intervention_year <- max(data$year)  # The intervention year is set to the last year
+    
+    ggplot(data, aes(x = year, y = outcome, color = group, linetype = group)) +
+      geom_line(linewidth = 1.2) +  # Using line plot to show trends
+      
+      # Add the vertical line at the far right representing intervention, and give it a label in the legend
+      geom_vline(aes(xintercept = intervention_year), color = "black", linetype = "solid", linewidth = 1.2)+
+      
+      # Set the labels for title, x, and y axes
+      labs(title = "Exchangeability Assumption", x = "Year", y = "Outcome") +
+      theme_minimal() +
+      
+      # Customize the color for Control and Treatment groups
+      scale_color_manual(values = c("Control Group" = "blue", "Treatment Group" = "red")) +  # Set the colors
+      
+      # Set linetypes: solid for Control Group, dashed for Treatment Group, and solid for Intervention
+      scale_linetype_manual(values = c("Control Group" = "solid", "Treatment Group" = "dashed", "Intervention" = "solid")) +
+      
+      # Remove x-axis numeric labels and ticks
+      theme(
+        axis.text.x = element_blank(),  # Hide x-axis text (numbers)
+        axis.ticks.x = element_blank(),  # Hide x-axis ticks
+        legend.position = "bottom",
+        legend.title = element_blank(),
+        
+        # Make all text elements bold and increase size
+        axis.title.x = element_text(size = 20, face = "bold"),
+        axis.title.y = element_text(size = 20, face = "bold"),
+        axis.text = element_text(size = 16, face = "bold"),
+        legend.text = element_text(size = 16, face = "bold"),
+        plot.title = element_text(size = 22, face = "bold")
+      )
+    
+  })
+  
+  
 }
 
-# Boast App Call ----
+
+# Run the application using boastApp ----
 boastUtils::boastApp(ui = ui, server = server)
