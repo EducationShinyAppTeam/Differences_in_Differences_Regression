@@ -41,6 +41,7 @@ ui <- list(
         menuItem("Overview", tabName = "overview", icon = icon("gauge-high")),
         menuItem("Prerequisites", tabName = "prerequisites", icon = icon("book")),
         menuItem("Explore Assumptions", tabName = "explore1", icon = icon("wpexplorer")),
+        menuItem("Explore Interpretations", tabName = "explore2", icon = icon("wpexplorer")),
         menuItem("References", tabName = "references", icon = icon("leanpub"))
       ),
       tags$div(
@@ -62,7 +63,8 @@ ui <- list(
           p("Explore the app based on the following instructions:"),
           tags$ol(
             tags$li("Review any prerequiste ideas using the Prerequistes tab."),
-            tags$li("Explore the assumptions by the Explore Assumptions Tab.")
+            tags$li("Explore the assumptions by the Explore Assumptions Tab."),
+            tags$li("Explore the interpretations by the Explore Interpretations Tab.")
           ),
           ##### Go Button--location will depend on your goals
           div(
@@ -371,6 +373,137 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
             )
           )
         ),
+   #### Set up the Explore Interpretation Page ----
+   tabItem(
+     tabName = "explore2",
+     h2("Explore Interpretations"),
+     p("To start your Diff-in-Diff exploration, we will use data from the paper \"If not now, when? Climate disaster and the Green vote following the 2021 Germany floods\" by Susanna Garside and Haoyu Zhai. This study examines the short-term electoral effects of the 2021 Germany floods on voter support for the Green Party, using a difference-in-differences (DID) design."),
+     p("The interactive components in this R Shiny app will help you understand how to interpret the Diff-in-Diff model results. You can manipulate various aspects of the model to see how different parameters impact the interpretation of the results."),
+     
+     
+     # Main content for interpreting Diff-in-Diff analysis
+     fluidPage(
+       tabsetPanel(
+         id = "diff_in_diff_tabs",
+         type = "tabs",
+         
+         ##### Treatment Effect Over Time ----
+         tabPanel(
+           title = "Treatment Effect Over Time",
+           br(),
+           column(
+             width = 4,
+             wellPanel(
+               tags$strong("Visualizing Treatment Effect Over Time"),
+               sliderInput(
+                 inputId = "treatment_intensity",
+                 label = "Adjust Treatment Intensity:",
+                 min = 0,
+                 max = 10,
+                 value = 5,
+                 step = 0.5
+               ),
+               checkboxInput(
+                 inputId = "show_confidence_interval",
+                 label = "Show Confidence Interval",
+                 value = TRUE
+               )
+             )
+           ),
+           column(
+             width = 8,
+             plotOutput("treatmentEffectPlot", height = "400px"),
+             br(),
+             uiOutput("treatmentEffectDescription")
+           )
+         ),
+         
+         ##### Covariate Balance Check ----
+         tabPanel(
+           title = "Covariate Balance Check",
+           br(),
+           column(
+             width = 4,
+             wellPanel(
+               tags$strong("Checking Covariate Balance"),
+               selectInput(
+                 inputId = "covariate",
+                 label = "Select Covariate to Check Balance:",
+                 choices = c("Income", "Education", "Age", "Population Density"),
+                 selected = "Income"
+               )
+             )
+           ),
+           column(
+             width = 8,
+             plotOutput("covariateBalancePlot", height = "400px"),
+             br(),
+             uiOutput("covariateBalanceDescription")
+           )
+         ),
+         
+         ##### Robustness Checks ----
+         tabPanel(
+           title = "Robustness Checks",
+           br(),
+           column(
+             width = 4,
+             wellPanel(
+               tags$strong("Performing Robustness Checks"),
+               checkboxGroupInput(
+                 inputId = "robustness_methods",
+                 label = "Select Robustness Checks to Perform:",
+                 choices = c("Placebo Test", "Alternative Specifications", "Sensitivity Analysis"),
+                 selected = "Placebo Test"
+               )
+             )
+           ),
+           column(
+             width = 8,
+             plotOutput("robustnessPlot", height = "400px"),
+             br(),
+             uiOutput("robustnessDescription")
+           )
+         ),
+         
+         ##### Heterogeneous Effects ----
+         tabPanel(
+           title = "Heterogeneous Effects",
+           br(),
+           column(
+             width = 4,
+             wellPanel(
+               tags$strong("Exploring Heterogeneous Effects"),
+               selectInput(
+                 inputId = "heterogeneity_factor",
+                 label = "Select Factor for Heterogeneity:",
+                 choices = c("Region", "Income Level", "Severity of Flooding"),
+                 selected = "Region"
+               ),
+               sliderInput(
+                 inputId = "heterogeneity_intensity",
+                 label = "Adjust Intensity of Heterogeneity Effect:",
+                 min = 0,
+                 max = 5,
+                 value = 2,
+                 step = 0.5
+               )
+             )
+           ),
+           column(
+             width = 8,
+             plotOutput("heterogeneityEffectPlot", height = "400px"),
+             br(),
+             uiOutput("heterogeneityEffectDescription")
+           )
+         )
+       )
+     )
+   ),
+   
+   
+   
+   
         #### Set up the References Page ----
         tabItem(
           tabName = "references",
