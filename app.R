@@ -5,6 +5,8 @@ library(shinyBS)
 library(shinyWidgets)
 library(boastUtils)
 library(ggplot2)
+library(openxlsx)
+library(shinyjs)
 
 
 # Load additional dependencies and setup functions
