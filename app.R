@@ -520,9 +520,21 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
            title = "Assumption Quiz",
            br(),
            uiOutput("quiz_ui")
+       ),
+       ##### Interpretation Quiz ----
+       tabPanel(
+         title = "Interpretation Quiz",
+         br(),
+         p("Scenario: A school district implemented a new reading program in 2021 aimed at improving students' reading scores. 
+    The program was introduced in one city (treatment group) while a neighboring city, with similar demographics and 
+    school funding, did not adopt the program (control group). Researchers gathered reading scores from 2019 to 2023 
+    to evaluate the program's impact."),
+         br(),
+         uiOutput("quiz_ui_interpretation")
        )
      )
    ),
+
    
    
    
