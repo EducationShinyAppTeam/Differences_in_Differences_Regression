@@ -517,13 +517,13 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
          
          ##### Assumption Quiz ----
          tabPanel(
-           title = "Assumption Quiz",
+           title = "Assumption",
            br(),
            uiOutput("quiz_ui")
        ),
        ##### Interpretation Quiz ----
        tabPanel(
-         title = "Interpretation Quiz",
+         title = "Interpretation",
          br(),
          p("Scenario: A school district implemented a new reading program in 2021 aimed at improving students' reading scores. 
     The program was introduced in one city (treatment group) while a neighboring city, with similar demographics and 
@@ -806,7 +806,75 @@ server <- function(input, output, session) {
     values$feedback <- ""
     updateRadioButtons(session, "answer", selected = character(0))
   })
-}
+
+  # Load question bank for Interpretation Quiz
+  questions_interpretation <- read.csv("questionbank2.csv")
+  
+  # Reactive values to keep track of the question index, score, and feedback
+  values_interpretation <- reactiveValues(current_question = 1, score = 0, feedback = "")
+  
+  # Render the Interpretation Quiz UI
+  output$quiz_ui_interpretation <- renderUI({
+    req(values_interpretation$current_question <= nrow(questions_interpretation))
+    
+    question <- questions_interpretation[values_interpretation$current_question, ]
+    
+    tagList(
+      h4(paste("Question", values_interpretation$current_question)),
+      p(question$question_text),
+      radioButtons("answer_interpretation", "Choose an answer:",
+                   choices = setNames(
+                     c("choice_1", "choice_2", "choice_3"),
+                     c(paste("A:", question[["choice_1"]]),
+                       paste("B:", question[["choice_2"]]),
+                       paste("C:", question[["choice_3"]]))
+                   )),
+      actionButton("submit_interpretation", "Submit"),
+      br(),
+      textOutput("feedback_interpretation"),
+      actionButton("next_question_interpretation", "Next Question", style = "margin-top: 10px;"),
+      actionButton("restart_interpretation", "Restart Quiz", style = "margin-top: 10px; color: red;")
+    )
+  })
+  
+  # Handle submission for Interpretation Quiz
+  observeEvent(input$submit_interpretation, {
+    req(input$answer_interpretation)
+    
+    question <- questions_interpretation[values_interpretation$current_question, ]
+    
+    if (input$answer_interpretation == question$correct_answer) {
+      values_interpretation$score <- values_interpretation$score + 1
+      values_interpretation$feedback <- question$correct_feedback
+    } else {
+      values_interpretation$feedback <- question$incorrect_feedback
+    }
+    
+    output$feedback_interpretation <- renderText({ values_interpretation$feedback })
+  })
+  
+  # Handle moving to the next question in Interpretation Quiz
+  observeEvent(input$next_question_interpretation, {
+    if (values_interpretation$current_question < nrow(questions_interpretation)) {
+      values_interpretation$current_question <- values_interpretation$current_question + 1
+      values_interpretation$feedback <- ""
+      updateRadioButtons(session, "answer_interpretation", selected = character(0))
+    } else {
+      values_interpretation$current_question <- 1  # Restart from the first question
+      values_interpretation$feedback <- ""
+    }
+  })
+  
+  # Handle restarting the Interpretation Quiz
+  observeEvent(input$restart_interpretation, {
+    values_interpretation$current_question <- 1
+    values_interpretation$score <- 0
+    values_interpretation$feedback <- ""
+    updateRadioButtons(session, "answer_interpretation", selected = character(0))
+  })
+  
+  
+  }
 
 # Run the application using boastApp ----
 boastUtils::boastApp(ui = ui, server = server)
