@@ -511,7 +511,6 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
      p("Use these quizzes to check your knowledge about the assumptions and interpretations of Diff-in-Diff analysis."),
      
      # Main content for Diff-in-Diff Challenge
-     fluidPage(
        tabsetPanel(
          id = "challenge_tabs",
          type = "tabs",
@@ -521,7 +520,6 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
            title = "Assumption Quiz",
            br(),
            uiOutput("quiz_ui")
-         )
        )
      )
    ),
@@ -583,7 +581,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
   )
 )
 
-# Define server logic
+# Server code  ----
 server <- function(input, output, session) {
   
   # Info button logic
@@ -596,7 +594,7 @@ server <- function(input, output, session) {
     )
   })
   
-  ####button###
+  #### Button to navigate to prerequisites page ####
   observeEvent(
     eventExpr = input$go,
     handlerExpr = {
@@ -608,35 +606,25 @@ server <- function(input, output, session) {
   
   # Generate data for Parallel Trends Assumption
   generate_data <- reactive({
-    years <- 1959:1969  # Simulated years
-    intervention_year <- 1964  # The year of intervention
+    years <- 1959:1969
+    intervention_year <- 1964
     
-    control_pre <- 8  # Baseline for control group
-    treatment_pre <- 7  # Baseline for treatment group
+    control_pre <- 8
+    treatment_pre <- 7
     
-    control_slope <- input$trend_control  # Control group trend slope
-    treatment_slope <- input$trend_treatment  # Treatment group trend slope
-    treatment_effect <- input$treatment_effect  # Treatment effect applied after intervention year
+    control_slope <- input$trend_control
+    treatment_slope <- input$trend_treatment
+    treatment_effect <- input$treatment_effect
     
-    # Post-intervention treatment slope
-    if (treatment_effect == 0) {
-      treatment_slope_post <- control_slope  # If treatment effect is 0, post-intervention slope is the same as control group
-    } else {
-      treatment_slope_post <- treatment_slope + treatment_effect  # If treatment effect is non-zero, slope changes
-    }
+    treatment_slope_post <- ifelse(treatment_effect == 0, control_slope, treatment_slope + treatment_effect)
     
-    # Create data for control group (before and after intervention)
     control_values <- control_pre + control_slope * (years - min(years))
-    
-    # Create data for treatment group (before and after intervention)
     treatment_values_pre <- treatment_pre + treatment_slope * (years[years <= intervention_year] - min(years))
     treatment_values_post <- treatment_pre + treatment_slope * (intervention_year - min(years)) +
       treatment_slope_post * (years[years > intervention_year] - intervention_year)
     
-    # Combine pre and post treatment values
     treatment_values <- c(treatment_values_pre, treatment_values_post)
     
-    # Combine all data into a data frame
     data.frame(
       year = rep(years, 2),
       outcome = c(control_values, treatment_values),
@@ -647,38 +635,26 @@ server <- function(input, output, session) {
   # Render the DID plot ----
   output$didPlot <- renderPlot({
     data <- generate_data()
-    intervention_year <- 1964  # The year of intervention
+    intervention_year <- 1964
     
-    # Plot using ggplot2
     ggplot(data, aes(x = year, y = outcome, color = group, linetype = group)) +
       geom_line(linewidth = 1.2) +
-      geom_vline(aes(xintercept = intervention_year), color = "black", linetype = "solid", linewidth = 1.2)+
-      
-      # Set the labels for title, x, and y axes
-      labs(title = "Parallel Trends Assumption", x= "Year",  y = "Outcome") +
+      geom_vline(aes(xintercept = intervention_year), color = "black", linetype = "solid", linewidth = 1.2) +
+      labs(title = "Parallel Trends Assumption", x = "Year", y = "Outcome") +
       theme_minimal() +
-      
-      # Manually set colors for Control and Treatment groups
-      scale_color_manual(values = c("Control Group" = "blue", "Treatment Group" = "red")) +  # Control = blue, Treatment = red
-      
-      # Manually set linetypes for Control and Treatment groups if needed
-      scale_linetype_manual(values = c("Control Group" = "solid", "Treatment Group" = "dashed")) + 
-      
-      
-      
-      # Remove x-axis numeric labels and ticks
+      scale_color_manual(values = c("Control Group" = "blue", "Treatment Group" = "red")) +
+      scale_linetype_manual(values = c("Control Group" = "solid", "Treatment Group" = "dashed")) +
       theme(
-        axis.text.x = element_blank(),  # Hide x-axis text (numbers)
-        axis.ticks.x = element_blank(),  # Hide x-axis ticks
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
         legend.position = "bottom",
         legend.title = element_blank(),
-        axis.title.x = element_blank(),  # Completely remove x-axis title
+        axis.title.x = element_blank(),
         axis.title.y = element_text(size = 20, face = "bold"),
         axis.text = element_text(size = 16, face = "bold"),
         legend.text = element_text(size = 16, face = "bold"),
         plot.title = element_text(size = 22, face = "bold")
       )
-    
   })
   
   # Assumption Check for Parallel Trends
@@ -710,25 +686,17 @@ server <- function(input, output, session) {
   # Generate data for Exchangeability Assumption
   generate_exchangeability_data <- reactive({
     years <- 1959:1969
-    control_pre <- 8  # Baseline for control group
+    control_pre <- 8
     
-    # Apply user's input for initial difference and confounding effect
     treatment_pre <- control_pre + input$initial_diff
     confounder_effect <- input$confounder
     
-    # Control group has constant slope
     control_slope <- 1
-    
-    # Treatment group has an adjusted slope due to the confounder
     treatment_slope <- 1 + confounder_effect
     
-    # Create data for control group
     control_values <- control_pre + control_slope * (years - min(years))
-    
-    # Create data for treatment group with bias from confounder
     treatment_values <- treatment_pre + treatment_slope * (years - min(years))
     
-    # Combine all data into a data frame
     data.frame(
       year = rep(years, 2),
       outcome = c(control_values, treatment_values),
@@ -739,44 +707,94 @@ server <- function(input, output, session) {
   # Plot for Exchangeability Assumption (Line Plot)
   output$plotExchangeability <- renderPlot({
     data <- generate_exchangeability_data()
-    intervention_year <- max(data$year)  # The intervention year is set to the last year
+    intervention_year <- max(data$year)
     
     ggplot(data, aes(x = year, y = outcome, color = group, linetype = group)) +
-      geom_line(linewidth = 1.2) +  # Using line plot to show trends
-      
-      # Add the vertical line at the far right representing intervention, and give it a label in the legend
-      geom_vline(aes(xintercept = intervention_year), color = "black", linetype = "solid", linewidth = 1.2)+
-      
-      # Set the labels for title, x, and y axes
+      geom_line(linewidth = 1.2) +
+      geom_vline(aes(xintercept = intervention_year), color = "black", linetype = "solid", linewidth = 1.2) +
       labs(title = "Exchangeability Assumption", x = "Year", y = "Outcome") +
       theme_minimal() +
-      
-      # Customize the color for Control and Treatment groups
-      scale_color_manual(values = c("Control Group" = "blue", "Treatment Group" = "red")) +  # Set the colors
-      
-      # Set linetypes: solid for Control Group, dashed for Treatment Group, and solid for Intervention
-      scale_linetype_manual(values = c("Control Group" = "solid", "Treatment Group" = "dashed", "Intervention" = "solid")) +
-      
-      # Remove x-axis numeric labels and ticks
+      scale_color_manual(values = c("Control Group" = "blue", "Treatment Group" = "red")) +
+      scale_linetype_manual(values = c("Control Group" = "solid", "Treatment Group" = "dashed")) +
       theme(
-        axis.text.x = element_blank(),  # Hide x-axis text (numbers)
-        axis.ticks.x = element_blank(),  # Hide x-axis ticks
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
         legend.position = "bottom",
         legend.title = element_blank(),
-        
-        # Make all text elements bold and increase size
         axis.title.x = element_text(size = 20, face = "bold"),
         axis.title.y = element_text(size = 20, face = "bold"),
         axis.text = element_text(size = 16, face = "bold"),
         legend.text = element_text(size = 16, face = "bold"),
         plot.title = element_text(size = 22, face = "bold")
       )
-    
   })
   
+  # Load question bank
+  questions <- read.csv("questionbank1.csv")
   
+  # Reactive values to keep track of the question index, score, and feedback
+  values <- reactiveValues(current_question = 1, score = 0, feedback = "")
+  
+  # Render the quiz UI
+  output$quiz_ui <- renderUI({
+    req(values$current_question <= nrow(questions))
+    
+    question <- questions[values$current_question, ]
+    
+    tagList(
+      h4(paste("Question", values$current_question)),
+      p(question$question_text),
+      radioButtons("answer", "Choose an answer:",
+                   choices = setNames(
+                     c("choice_1", "choice_2", "choice_3"),
+                     c(paste("A:", question[["choice_1"]]),
+                       paste("B:", question[["choice_2"]]),
+                       paste("C:", question[["choice_3"]]))
+                   )),
+      actionButton("submit", "Submit"),
+      br(),
+      textOutput("feedback"),
+      actionButton("next_question", "Next Question", style = "margin-top: 10px;"),
+      actionButton("restart", "Restart Quiz", style = "margin-top: 10px; color: red;")
+    )
+  })
+  
+  # Handle submission
+  observeEvent(input$submit, {
+    req(input$answer)
+    
+    question <- questions[values$current_question, ]
+    
+    if (input$answer == question$correct_answer) {
+      values$score <- values$score + 1
+      values$feedback <- question$correct_feedback
+    } else {
+      values$feedback <- question$incorrect_feedback
+    }
+    
+    output$feedback <- renderText({ values$feedback })
+  })
+  
+  # Handle moving to the next question
+  observeEvent(input$next_question, {
+    # Cycle back to the first question if at the end of the list
+    if (values$current_question < nrow(questions)) {
+      values$current_question <- values$current_question + 1
+    } else {
+      values$current_question <- 1  # Restart from the first question
+    }
+    values$feedback <- ""
+    updateRadioButtons(session, "answer", selected = character(0))
+  })
+  
+  # Handle restarting the quiz
+  observeEvent(input$restart, {
+    values$current_question <- 1
+    values$score <- 0
+    values$feedback <- ""
+    updateRadioButtons(session, "answer", selected = character(0))
+  })
 }
-
 
 # Run the application using boastApp ----
 boastUtils::boastApp(ui = ui, server = server)
