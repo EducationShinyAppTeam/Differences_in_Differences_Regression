@@ -507,33 +507,71 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
    tabItem(
      tabName = "challenge",
      h2("Challenge"),
-     p("Welcome to the Diff-in-Diff Challenge! This page allows you to test your understanding of Diff-in-Diff models through a series of multiple-choice questions."),
-     p("Use these quizzes to check your knowledge about the assumptions and interpretations of Diff-in-Diff analysis."),
+     p("Welcome to the Diff-in-Diff Challenge! This page allows you to test your knowledge of Diff-in-Diff models with multiple-choice questions."),
+     p("Use these quizzes to deepen your understanding of the assumptions and interpretations in Diff-in-Diff analysis."),
      
      # Main content for Diff-in-Diff Challenge
-       tabsetPanel(
-         id = "challenge_tabs",
-         type = "tabs",
-         
-         ##### Assumption Quiz ----
-         tabPanel(
-           title = "Assumption",
-           br(),
-           uiOutput("quiz_ui")
-       ),
-       ##### Interpretation Quiz ----
+     tabsetPanel(
+       id = "challenge_tabs",
+       type = "tabs",
+       
+       # Assumption Quiz Tab
        tabPanel(
-         title = "Interpretation",
+         title = "Assumption Quiz",
+         br(),
+         # Question and choices for Assumption Quiz
+         htmlOutput("assumption_questionText"),
+         br(),
+         uiOutput("assumption_choices"),
+         br(),
+         
+         # Action buttons for Assumption Quiz
+         div(style = "text-align: left", 
+             bsButton(inputId = 'submitA', label = 'Check Answer',style = "default",
+                      size = "large",disabled = FALSE),
+             bsButton(inputId = 'nextA', label = 'Next', style = "default",
+                      size = "large",disabled = FALSE)
+         ),
+         
+         # Feedback section with icons and text feedback for Assumption Quiz
+         div(id = "assumption_feedbackSection",
+             htmlOutput("assumption_challengeFeedback"),
+             uiOutput("assumption_textFeedback")
+         )
+       ),
+       
+       # Interpretation Quiz Tab
+       tabPanel(
+         title = "Interpretation Quiz",
          br(),
          p("Scenario: A school district implemented a new reading program in 2021 aimed at improving students' reading scores. 
-    The program was introduced in one city (treatment group) while a neighboring city, with similar demographics and 
-    school funding, did not adopt the program (control group). Researchers gathered reading scores from 2019 to 2023 
-    to evaluate the program's impact."),
+          The program was introduced in one city (treatment group) while a neighboring city, with similar demographics and 
+          school funding, did not adopt the program (control group). Researchers gathered reading scores from 2019 to 2023 
+          to evaluate the program's impact."),
          br(),
-         uiOutput("quiz_ui_interpretation")
+         # Question and choices for Interpretation Quiz
+         htmlOutput("interpretation_questionText"),
+         br(),
+         uiOutput("interpretation_choices"),
+         br(),
+         
+         # Action buttons for Interpretation Quiz
+         div(style = "text-align: left", 
+             bsButton(inputId = 'submitX', label = 'Check Answer',style = "default",
+                      size = "large",disabled = FALSE),
+             bsButton(inputId = 'nextX', label = 'Next', style = "default",
+                      size = "large",disabled = FALSE)
+         ),
+         
+         # Feedback section with icons and text feedback for Interpretation Quiz
+         div(id = "interpretation_feedbackSection",
+             htmlOutput("interpretation_challengeFeedback"),
+             uiOutput("interpretation_textFeedback")
+         )
        )
      )
    ),
+   
 
    
    
@@ -741,138 +779,109 @@ server <- function(input, output, session) {
       )
   })
   
-  # Load question bank
-  questions <- read.csv("questionbank1.csv")
+  # Load assumption and interpretation questions data
+  assumption_questions <- read.csv("questionbank1.csv")
+  interpretation_questions <- read.csv("questionbank2.csv")
   
-  # Reactive values to keep track of the question index, score, and feedback
-  values <- reactiveValues(current_question = 1, score = 0, feedback = "")
+  # Reactive values to manage the current question index for each quiz
+  values_assumption <- reactiveValues(
+    num = sample(1:nrow(assumption_questions), 1)  # Start with a random question for Assumption Quiz
+  )
+  values_interpretation <- reactiveValues(
+    num = sample(1:nrow(interpretation_questions), 1)  # Start with a random question for Interpretation Quiz
+  )
   
-  # Render the quiz UI
-  output$quiz_ui <- renderUI({
-    req(values$current_question <= nrow(questions))
-    
-    question <- questions[values$current_question, ]
-    
-    tagList(
-      h4(paste("Question", values$current_question)),
-      p(question$question_text),
-      radioButtons("answer", "Choose an answer:",
-                   choices = setNames(
-                     c("choice_1", "choice_2", "choice_3"),
-                     c(paste("A:", question[["choice_1"]]),
-                       paste("B:", question[["choice_2"]]),
-                       paste("C:", question[["choice_3"]]))
-                   )),
-      actionButton("submit", "Submit"),
-      br(),
-      textOutput("feedback"),
-      actionButton("next_question", "Next Question", style = "margin-top: 10px;"),
-      actionButton("restart", "Restart Quiz", style = "margin-top: 10px; color: red;")
-    )
+  # Assumption Quiz: Render question text and choices
+  output$assumption_questionText <- renderText({
+    assumption_questions$question_text[values_assumption$num]
   })
   
-  # Handle submission
-  observeEvent(input$submit, {
-    req(input$answer)
-    
-    question <- questions[values$current_question, ]
-    
-    if (input$answer == question$correct_answer) {
-      values$score <- values$score + 1
-      values$feedback <- question$correct_feedback
+  output$assumption_choices <- renderUI({
+    radioButtons("assumption_choice", "Choose an answer:",
+                 choices = list(
+                   "A" = assumption_questions$choice_1[values_assumption$num],
+                   "B" = assumption_questions$choice_2[values_assumption$num],
+                   "C" = assumption_questions$choice_3[values_assumption$num]
+                 ), selected = character(0))
+  })
+  
+  # Interpretation Quiz: Render question text and choices
+  output$interpretation_questionText <- renderText({
+    interpretation_questions$question_text[values_interpretation$num]
+  })
+  
+  output$interpretation_choices <- renderUI({
+    radioButtons("interpretation_choice", "Choose an answer:",
+                 choices = list(
+                   "A" = interpretation_questions$choice_1[values_interpretation$num],
+                   "B" = interpretation_questions$choice_2[values_interpretation$num],
+                   "C" = interpretation_questions$choice_3[values_interpretation$num]
+                 ), selected = character(0))
+  })
+  
+  # Assumption Quiz: Handle 'Check Answer' button
+  observeEvent(input$submitA, {
+    if (input$assumption_choice == assumption_questions$correct_answer[values_assumption$num]) {
+      output$assumption_challengeFeedback <- boastUtils::renderIcon(icon = "correct", width = 36, html = FALSE)
+      output$assumption_textFeedback <- renderUI({
+        div(h4(style = 'text-align: left', assumption_questions$correct_feedback[values_assumption$num]))
+      })
     } else {
-      values$feedback <- question$incorrect_feedback
+      output$assumption_challengeFeedback <- boastUtils::renderIcon(icon = "incorrect", width = 36, html = FALSE)
+      output$assumption_textFeedback <- renderUI({
+        div(h4(style = 'text-align: left', assumption_questions$incorrect_feedback[values_assumption$num]))
+      })
     }
     
-    output$feedback <- renderText({ values$feedback })
+    # Show feedback elements
+    shinyjs::showElement("assumption_challengeFeedback")
+    shinyjs::showElement("assumption_textFeedback")
   })
   
-  # Handle moving to the next question
-  observeEvent(input$next_question, {
-    # Cycle back to the first question if at the end of the list
-    if (values$current_question < nrow(questions)) {
-      values$current_question <- values$current_question + 1
+  # Interpretation Quiz: Handle 'Check Answer' button
+  observeEvent(input$submitX, {
+    if (input$interpretation_choice == interpretation_questions$correct_answer[values_interpretation$num]) {
+      output$interpretation_challengeFeedback <- boastUtils::renderIcon(icon = "correct", width = 36, html = FALSE)
+      output$interpretation_textFeedback <- renderUI({
+        div(h4(style = 'text-align: left', interpretation_questions$correct_feedback[values_interpretation$num]))
+      })
     } else {
-      values$current_question <- 1  # Restart from the first question
-    }
-    values$feedback <- ""
-    updateRadioButtons(session, "answer", selected = character(0))
-  })
-  
-  # Handle restarting the quiz
-  observeEvent(input$restart, {
-    values$current_question <- 1
-    values$score <- 0
-    values$feedback <- ""
-    updateRadioButtons(session, "answer", selected = character(0))
-  })
-
-  # Load question bank for Interpretation Quiz
-  questions_interpretation <- read.csv("questionbank2.csv")
-  
-  # Reactive values to keep track of the question index, score, and feedback
-  values_interpretation <- reactiveValues(current_question = 1, score = 0, feedback = "")
-  
-  # Render the Interpretation Quiz UI
-  output$quiz_ui_interpretation <- renderUI({
-    req(values_interpretation$current_question <= nrow(questions_interpretation))
-    
-    question <- questions_interpretation[values_interpretation$current_question, ]
-    
-    tagList(
-      h4(paste("Question", values_interpretation$current_question)),
-      p(question$question_text),
-      radioButtons("answer_interpretation", "Choose an answer:",
-                   choices = setNames(
-                     c("choice_1", "choice_2", "choice_3"),
-                     c(paste("A:", question[["choice_1"]]),
-                       paste("B:", question[["choice_2"]]),
-                       paste("C:", question[["choice_3"]]))
-                   )),
-      actionButton("submit_interpretation", "Submit"),
-      br(),
-      textOutput("feedback_interpretation"),
-      actionButton("next_question_interpretation", "Next Question", style = "margin-top: 10px;"),
-      actionButton("restart_interpretation", "Restart Quiz", style = "margin-top: 10px; color: red;")
-    )
-  })
-  
-  # Handle submission for Interpretation Quiz
-  observeEvent(input$submit_interpretation, {
-    req(input$answer_interpretation)
-    
-    question <- questions_interpretation[values_interpretation$current_question, ]
-    
-    if (input$answer_interpretation == question$correct_answer) {
-      values_interpretation$score <- values_interpretation$score + 1
-      values_interpretation$feedback <- question$correct_feedback
-    } else {
-      values_interpretation$feedback <- question$incorrect_feedback
+      output$interpretation_challengeFeedback <- boastUtils::renderIcon(icon = "incorrect", width = 36, html = FALSE)
+      output$interpretation_textFeedback <- renderUI({
+        div(h4(style = 'text-align: left', interpretation_questions$incorrect_feedback[values_interpretation$num]))
+      })
     }
     
-    output$feedback_interpretation <- renderText({ values_interpretation$feedback })
+    # Show feedback elements
+    shinyjs::showElement("interpretation_challengeFeedback")
+    shinyjs::showElement("interpretation_textFeedback")
   })
   
-  # Handle moving to the next question in Interpretation Quiz
-  observeEvent(input$next_question_interpretation, {
-    if (values_interpretation$current_question < nrow(questions_interpretation)) {
-      values_interpretation$current_question <- values_interpretation$current_question + 1
-      values_interpretation$feedback <- ""
-      updateRadioButtons(session, "answer_interpretation", selected = character(0))
-    } else {
-      values_interpretation$current_question <- 1  # Restart from the first question
-      values_interpretation$feedback <- ""
-    }
+  # Assumption Quiz: Handle 'Next' button to randomize question
+  observeEvent(input$nextA, {
+    # Hide feedback when moving to the next question
+    shinyjs::hideElement("assumption_challengeFeedback")
+    shinyjs::hideElement("assumption_textFeedback")
+    
+    # Select a new random question
+    values_assumption$num <- sample(1:nrow(assumption_questions), 1)
+    
+    # Clear selected answer
+    updateRadioButtons(session, "assumption_choice", selected = character(0))
   })
   
-  # Handle restarting the Interpretation Quiz
-  observeEvent(input$restart_interpretation, {
-    values_interpretation$current_question <- 1
-    values_interpretation$score <- 0
-    values_interpretation$feedback <- ""
-    updateRadioButtons(session, "answer_interpretation", selected = character(0))
+  # Interpretation Quiz: Handle 'Next' button to randomize question
+  observeEvent(input$nextX, {
+    # Hide feedback when moving to the next question
+    shinyjs::hideElement("interpretation_challengeFeedback")
+    shinyjs::hideElement("interpretation_textFeedback")
+    
+    # Select a new random question
+    values_interpretation$num <- sample(1:nrow(interpretation_questions), 1)
+    
+    # Clear selected answer
+    updateRadioButtons(session, "interpretation_choice", selected = character(0))
   })
-  
   
   }
 
