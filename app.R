@@ -416,7 +416,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
          ),
          
          mainPanel(
-           h3("DiD Effect Visualization"),
+           h4("DiD Effect Visualization"),
            plotOutput("didfloodplot")
          )
        )
@@ -858,17 +858,17 @@ observeEvent(c(input$treatment, input$covariates), {
   # Dynamic interpretation of ATT
   output$interpretationText <- renderUI({
     if (!is.na(p_value) && p_value < 0.05) {
-      interpretation <- paste("The ATT is statistically significant (p-value:", p_value, ").",
+      interpretation <- paste("The ATT is statistically significant (p-value:", round(p_value, 2), ").",
                               "This indicates that the selected treatment (", treatment_var, ") is associated with an increase in Green Party vote share.",
                               "An ATT of", round(att * 100, 2), "% suggests that municipalities exposed to", treatment_var,
                               "experienced a", round(att * 100, 2), "percentage point increase in vote share for the Green Party compared to those that were not exposed.")
     } else if (!is.na(p_value)) {
-      interpretation <- paste("The ATT is not statistically significant (p-value:", p_value, "),",
+      interpretation <- paste("The ATT is not statistically significant (p-value:", round(p_value, 2), "),",
                               "indicating that there is insufficient evidence to conclude that the selected treatment has a significant effect on Green Party vote share.")
     } else {
       interpretation <- "ATT and p-value not available due to missing interaction term."
     }
-    div(h4(interpretation))
+    div(interpretation)
   })
 })
 
@@ -876,7 +876,7 @@ observeEvent(c(input$treatment, input$covariates), {
 output$didfloodplot <- renderPlot({
   ggplot(data_vote_main, aes(x = as.Date(date), y = v_green_pct, color = factor(.data[[input$treatment]]), group = factor(.data[[input$treatment]]))) +
     geom_line(size = 1.2) +
-    geom_point(size = 3) +
+    
     labs(title = paste("Difference-in-Differences Plot for", input$treatment),
          x = "Date", 
          y = "Green Party Vote Share",
