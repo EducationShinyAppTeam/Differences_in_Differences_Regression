@@ -7,8 +7,8 @@ library(boastUtils)
 library(ggplot2)
 library(openxlsx)
 library(shinyjs)
-
-
+library(DT)
+library(broom)
 # Load additional dependencies and setup functions
 # source("global.R")
 
@@ -383,126 +383,47 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
      p("To start your Diff-in-Diff exploration, we will use data from the paper \"If not now, when? Climate disaster and the Green vote following the 2021 Germany floods\" by Susanna Garside and Haoyu Zhai. This study examines the short-term electoral effects of the 2021 Germany floods on voter support for the Green Party, using a difference-in-differences (DID) design."),
      p("The interactive components in this R Shiny app will help you understand how to interpret the Diff-in-Diff model results. You can manipulate various aspects of the model to see how different parameters impact the interpretation of the results."),
      
-     
      # Main content for interpreting Diff-in-Diff analysis
-     fluidPage(
-       tabsetPanel(
-         id = "diff_in_diff_tabs",
-         type = "tabs",
-         
-         ##### Treatment Effect Over Time ----
-         tabPanel(
-           title = "Treatment Effect Over Time",
-           br(),
-           column(
-             width = 4,
-             wellPanel(
-               tags$strong("Visualizing Treatment Effect Over Time"),
-               sliderInput(
-                 inputId = "treatment_intensity",
-                 label = "Adjust Treatment Intensity:",
-                 min = 0,
-                 max = 10,
-                 value = 5,
-                 step = 0.5
-               ),
-               checkboxInput(
-                 inputId = "show_confidence_interval",
-                 label = "Show Confidence Interval",
-                 value = TRUE
-               )
-             )
-           ),
-           column(
-             width = 8,
-             plotOutput("treatmentEffectPlot", height = "400px"),
-             br(),
-             uiOutput("treatmentEffectDescription")
-           )
+     
+       sidebarLayout(
+         sidebarPanel(
+           h4("Model Summary"),
+           p("This Difference-in-Differences (DiD) model estimates the effect of flood exposure or severe weather on Green Party voting share."),
+           
+           h4("Treatment and Control Group Selection"),
+           selectInput("treatment", "Select Treatment Variable:",
+                       choices = list("Flooded" = "flooded", "Severe" = "severe"),
+                       selected = "flooded"),
+           
+           h4("ATT Result"),
+           textOutput("att_value"),
+           
+           h4("Interpretation of ATT"),
+           uiOutput("interpretationText"),
+           
+           h4("Select Covariates"),
+           checkboxGroupInput("covariates", "Include Additional Covariates:",
+                              choices = list(
+                                "Income Mean" = "income_mean",
+                                "Unemployment Rate" = "unemployed_rate",
+                                "Population Density" = "pop_per_sqkm",
+                                "Proportion of Elderly Population" = "old_share",
+                                "Land Set Aside (%)" = "land_set_pct",
+                                "Agricultural Land (%)" = "land_agri_pct",
+                                "Distance to Environmental Feature" = "distance"
+                              ),
+                              selected = NULL)
          ),
          
-         ##### Covariate Balance Check ----
-         tabPanel(
-           title = "Covariate Balance Check",
-           br(),
-           column(
-             width = 4,
-             wellPanel(
-               tags$strong("Checking Covariate Balance"),
-               selectInput(
-                 inputId = "covariate",
-                 label = "Select Covariate to Check Balance:",
-                 choices = c("Income", "Education", "Age", "Population Density"),
-                 selected = "Income"
-               )
-             )
-           ),
-           column(
-             width = 8,
-             plotOutput("covariateBalancePlot", height = "400px"),
-             br(),
-             uiOutput("covariateBalanceDescription")
-           )
-         ),
-         
-         ##### Robustness Checks ----
-         tabPanel(
-           title = "Robustness Checks",
-           br(),
-           column(
-             width = 4,
-             wellPanel(
-               tags$strong("Performing Robustness Checks"),
-               checkboxGroupInput(
-                 inputId = "robustness_methods",
-                 label = "Select Robustness Checks to Perform:",
-                 choices = c("Placebo Test", "Alternative Specifications", "Sensitivity Analysis"),
-                 selected = "Placebo Test"
-               )
-             )
-           ),
-           column(
-             width = 8,
-             plotOutput("robustnessPlot", height = "400px"),
-             br(),
-             uiOutput("robustnessDescription")
-           )
-         ),
-         
-         ##### Heterogeneous Effects ----
-         tabPanel(
-           title = "Heterogeneous Effects",
-           br(),
-           column(
-             width = 4,
-             wellPanel(
-               tags$strong("Exploring Heterogeneous Effects"),
-               selectInput(
-                 inputId = "heterogeneity_factor",
-                 label = "Select Factor for Heterogeneity:",
-                 choices = c("Region", "Income Level", "Severity of Flooding"),
-                 selected = "Region"
-               ),
-               sliderInput(
-                 inputId = "heterogeneity_intensity",
-                 label = "Adjust Intensity of Heterogeneity Effect:",
-                 min = 0,
-                 max = 5,
-                 value = 2,
-                 step = 0.5
-               )
-             )
-           ),
-           column(
-             width = 8,
-             plotOutput("heterogeneityEffectPlot", height = "400px"),
-             br(),
-             uiOutput("heterogeneityEffectDescription")
-           )
+         mainPanel(
+           h3("DiD Effect Visualization"),
+           plotOutput("didfloodplot")
          )
        )
-     )
+     
    ),
+   
+       
    #### Set up the Challenge Page ----
    tabItem(
      tabName = "challenge",
@@ -883,6 +804,86 @@ server <- function(input, output, session) {
     updateRadioButtons(session, "interpretation_choice", selected = character(0))
   })
   
+#load data
+data_vote_main <-read.csv("data_vote_main.csv")
+
+# Observe changes in treatment and covariates to calculate ATT
+observeEvent(c(input$treatment, input$covariates), {
+  treatment_var <- input$treatment
+  
+  # Prepare formula for the regression model
+  base_formula <- as.formula(paste(
+    "v_green_pct ~", treatment_var, "* I(date >= '2021-09-26')"
+  ))
+  
+  # Add selected covariates to the model formula
+  if (!is.null(input$covariates)) {
+    covariate_formula <- paste(input$covariates, collapse = " + ")
+    full_formula <- as.formula(paste(deparse(base_formula), "+", covariate_formula))
+  } else {
+    full_formula <- base_formula
+  }
+  
+  # Fit the DiD model with the selected treatment and covariates
+  model <- lm(full_formula, data = data_vote_main)
+  
+  # Extract the ATT estimate (interaction term of treatment and post-treatment period)
+  model_summary <- tidy(model)
+  interaction_term <- paste(treatment_var, "I(date >= \"2021-09-26\")TRUE", sep = ":")
+  
+  # Check if the interaction term exists in the model summary
+  if (interaction_term %in% model_summary$term) {
+    att <- model_summary %>%
+      filter(term == interaction_term) %>%
+      pull(estimate)
+    
+    # Extract p-value for the ATT
+    p_value <- model_summary %>%
+      filter(term == interaction_term) %>%
+      pull(p.value)
+  } else {
+    att <- NA
+    p_value <- NA
+  }
+  
+  # Output ATT result
+  output$att_value <- renderText({
+    if (!is.na(att)) {
+      paste("ATT (Average Treatment Effect on the Treated):", round(att * 100, 2), "%")
+    } else {
+      "ATT not available due to missing interaction term."
+    }
+  })
+  
+  # Dynamic interpretation of ATT
+  output$interpretationText <- renderUI({
+    if (!is.na(p_value) && p_value < 0.05) {
+      interpretation <- paste("The ATT is statistically significant (p-value:", p_value, ").",
+                              "This indicates that the selected treatment (", treatment_var, ") is associated with an increase in Green Party vote share.",
+                              "An ATT of", round(att * 100, 2), "% suggests that municipalities exposed to", treatment_var,
+                              "experienced a", round(att * 100, 2), "percentage point increase in vote share for the Green Party compared to those that were not exposed.")
+    } else if (!is.na(p_value)) {
+      interpretation <- paste("The ATT is not statistically significant (p-value:", p_value, "),",
+                              "indicating that there is insufficient evidence to conclude that the selected treatment has a significant effect on Green Party vote share.")
+    } else {
+      interpretation <- "ATT and p-value not available due to missing interaction term."
+    }
+    div(h4(interpretation))
+  })
+})
+
+# Plot DiD Effect Visualization (optional)
+output$didfloodplot <- renderPlot({
+  ggplot(data_vote_main, aes(x = as.Date(date), y = v_green_pct, color = factor(.data[[input$treatment]]), group = factor(.data[[input$treatment]]))) +
+    geom_line(size = 1.2) +
+    geom_point(size = 3) +
+    labs(title = paste("Difference-in-Differences Plot for", input$treatment),
+         x = "Date", 
+         y = "Green Party Vote Share",
+         color = paste("Treatment:", input$treatment)) +
+    scale_color_manual(values = c("0" = "blue", "1" = "red"), labels = c("Control (No Treatment)", "Treated")) +
+    theme_minimal()
+})
   }
 
 # Run the application using boastApp ----
