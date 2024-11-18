@@ -395,11 +395,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
                        choices = list("Flooded" = "flooded", "Severe" = "severe"),
                        selected = "flooded"),
            
-           h4("ATT Result"),
-           textOutput("att_value"),
-           
-           h4("Interpretation of ATT"),
-           uiOutput("interpretationText"),
+          
            
            h4("Select Covariates"),
            checkboxGroupInput("covariates", "Include Additional Covariates:",
@@ -416,12 +412,16 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
          ),
          
          mainPanel(
-           h4("DiD Effect Visualization"),
-           plotOutput("didfloodplot")
+           plotOutput("didfloodplot", height = "400px"),
+           br(),
+           tags$strong("ATT Result"),
+           textOutput("att_value"),
+           br(),
+           tags$strong("Interpretation of ATT"),
+           uiOutput("interpretationText")
          )
        )
-     
-   ),
+    ),
    
        
    #### Set up the Challenge Page ----
