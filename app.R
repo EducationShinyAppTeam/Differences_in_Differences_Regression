@@ -9,6 +9,7 @@ library(openxlsx)
 library(shinyjs)
 library(DT)
 library(broom)
+library(dplyr)
 # Load additional dependencies and setup functions
 # source("global.R")
 
