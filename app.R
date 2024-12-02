@@ -409,7 +409,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
                                 "Agricultural Land (%)" = "land_agri_pct",
                                 "Distance to Environmental Feature" = "distance"
                               ),
-                              selected = charater(0))
+                              selected = character(0))
          ),
          
          mainPanel(
