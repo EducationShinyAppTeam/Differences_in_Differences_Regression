@@ -260,11 +260,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
    ), "app.")
           )
         ),
-   
-   
-   #### Note: you must have at least one of the following pages. You might
-   #### have more than one type and/or more than one of the same type. This
-   #### will be up to you and the goals for your app.
+
    #### Set up an Explore 1 Page ----
    tabItem(
      tabName = "explore1",
@@ -377,6 +373,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
        )
      )
    ),
+   
    #### Set up the Explore Interpretation Page ----
    tabItem(
      tabName = "explore2",
@@ -452,6 +449,8 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
              bsButton(inputId = 'submitA', label = 'Check Answer', style = "default",
                       size = "large", disabled = FALSE),
              bsButton(inputId = 'nextA', label = 'Next', style = "default",
+                      size = "large", disabled = FALSE),
+             bsButton(inputId = 'clearA', label = 'Clear Answer', style = "default",
                       size = "large", disabled = FALSE)
          ),
          
@@ -482,6 +481,8 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
              bsButton(inputId = 'submitX', label = 'Check Answer', style = "default",
                       size = "large", disabled = FALSE),
              bsButton(inputId = 'nextX', label = 'Next', style = "default",
+                      size = "large", disabled = FALSE),
+             bsButton(inputId = 'clearX', label = 'Clear Answer', style = "default",
                       size = "large", disabled = FALSE)
          ),
          
@@ -493,11 +494,6 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
        )
      )
    ),
-   
-
-   
-   
-   
    
    #### Set up the References Page ----
    tabItem(
@@ -743,7 +739,7 @@ server <- function(input, output, session) {
       inputId = "assumption_choice",
       label = "Choose an answer:",
       choices = values_assumption$shuffled_choices,
-      selected = NULL
+      selected = character(0)
     )
   })
   
@@ -758,7 +754,7 @@ server <- function(input, output, session) {
         icon = "correct", width = 36
       )
       output$assumption_textFeedback <- renderUI({
-        div( current_question$correct_feedback)
+        div(current_question$correct_feedback)
       })
     } else {
       output$assumption_challengeFeedback <- boastUtils::renderIcon(
@@ -779,7 +775,17 @@ server <- function(input, output, session) {
     
     shinyjs::hide("assumption_feedbackSection")  # Hide feedback
     values_assumption$num <- sample(1:nrow(assumption_questions), 1)  # Randomize question
-    updateRadioButtons(session, "assumption_choice", selected = NULL)  # Reset selection
+    updateRadioButtons(session, "assumption_choice", selected = character(0))  # Reset selection
+  })
+  
+  # Handle "Clear Answer" button
+  observeEvent(input$clearA, {
+    # Clear the feedback explicitly
+    output$assumption_challengeFeedback <- renderUI({ NULL })
+    output$assumption_textFeedback <- renderUI({ NULL })
+    
+    shinyjs::hide("assumption_feedbackSection")  # Hide feedback
+    updateRadioButtons(session, "assumption_choice", selected = character(0))  # Reset selection
   })
   
   ### Interpretation Quiz ###
@@ -808,7 +814,7 @@ server <- function(input, output, session) {
       inputId = "interpretation_choice",
       label = "Choose an answer:",
       choices = values_interpretation$shuffled_choices,
-      selected = NULL
+      selected = character(0)
     )
   })
   
@@ -844,8 +850,19 @@ server <- function(input, output, session) {
     
     shinyjs::hide("interpretation_feedbackSection")  # Hide feedback
     values_interpretation$num <- sample(1:nrow(interpretation_questions), 1)  # Randomize question
-    updateRadioButtons(session, "interpretation_choice", selected = NULL)  # Reset selection
+    updateRadioButtons(session, "interpretation_choice", selected = character(0))  # Reset selection
   })
+  
+  # Handle "Clear Answer" button
+  observeEvent(input$clearX, {
+    # Clear the feedback explicitly
+    output$interpretation_challengeFeedback <- renderUI({ NULL })
+    output$interpretation_textFeedback <- renderUI({ NULL })
+    
+    shinyjs::hide("interpretation_feedbackSection")  # Hide feedback
+    updateRadioButtons(session, "interpretation_choice", selected = character(0))  # Reset selection
+  })
+  
   
 #load data
 data_vote_main <-read.csv("data_vote_main.csv")
