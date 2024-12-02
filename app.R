@@ -758,14 +758,14 @@ server <- function(input, output, session) {
         icon = "correct", width = 36
       )
       output$assumption_textFeedback <- renderUI({
-        div(style = 'color: green;', current_question$correct_feedback)
+        div( current_question$correct_feedback)
       })
     } else {
       output$assumption_challengeFeedback <- boastUtils::renderIcon(
         icon = "incorrect", width = 36
       )
       output$assumption_textFeedback <- renderUI({
-        div(style = 'color: red;', current_question$incorrect_feedback)
+        div(current_question$incorrect_feedback)
       })
     }
     shinyjs::show("assumption_feedbackSection")  # Show feedback
@@ -823,14 +823,14 @@ server <- function(input, output, session) {
         icon = "correct", width = 36
       )
       output$interpretation_textFeedback <- renderUI({
-        div(style = 'color: green;', current_question$correct_feedback)
+        div(current_question$correct_feedback)
       })
     } else {
       output$interpretation_challengeFeedback <- boastUtils::renderIcon(
         icon = "incorrect", width = 36
       )
       output$interpretation_textFeedback <- renderUI({
-        div(style = 'color: red;', current_question$incorrect_feedback)
+        div(current_question$incorrect_feedback)
       })
     }
     shinyjs::show("interpretation_feedbackSection")  # Show feedback
