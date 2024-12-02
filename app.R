@@ -445,14 +445,14 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
          br(),
          
          # Action buttons for Assumption Quiz
-         div(style = "text-align: left", 
+         
              bsButton(inputId = 'submitA', label = 'Check Answer', style = "default",
                       size = "large", disabled = FALSE),
              bsButton(inputId = 'nextA', label = 'Next', style = "default",
                       size = "large", disabled = FALSE),
              bsButton(inputId = 'clearA', label = 'Clear Answer', style = "default",
-                      size = "large", disabled = FALSE)
-         ),
+                      size = "large", disabled = FALSE),
+         
          
          # Feedback section with icons and text feedback for Assumption Quiz
          div(id = "assumption_feedbackSection",
@@ -477,14 +477,14 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
          br(),
          
          # Action buttons for Interpretation Quiz
-         div(style = "text-align: left", 
+         
              bsButton(inputId = 'submitX', label = 'Check Answer', style = "default",
                       size = "large", disabled = FALSE),
              bsButton(inputId = 'nextX', label = 'Next', style = "default",
                       size = "large", disabled = FALSE),
              bsButton(inputId = 'clearX', label = 'Clear Answer', style = "default",
-                      size = "large", disabled = FALSE)
-         ),
+                      size = "large", disabled = FALSE),
+         
          
          # Feedback section with icons and text feedback for Interpretation Quiz
          div(id = "interpretation_feedbackSection",
@@ -729,7 +729,7 @@ server <- function(input, output, session) {
   # Render question text
   output$assumption_questionText <- renderUI({
     req(values_assumption$num)
-    div(h4(assumption_questions$question_text[values_assumption$num]))
+    p(assumption_questions$question_text[values_assumption$num])
   })
   
   # Render randomized choices
