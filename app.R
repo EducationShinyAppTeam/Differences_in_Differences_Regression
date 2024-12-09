@@ -18,7 +18,7 @@ ui <- list(
   ## Create the app page ----
   dashboardPage(
     skin = "blue",
-    ### Create the app header ----
+    ### App header ----
     dashboardHeader(
       title = "Two-Period Diff-in-Diff",
       titleWidth = 250,
@@ -36,7 +36,7 @@ ui <- list(
         )
       )
     ),
-    ### Create the sidebar/left navigation menu ----
+    ### Sidebar/left navigation menu ----
     dashboardSidebar(
       width = 250,
       sidebarMenu(
@@ -56,7 +56,7 @@ ui <- list(
     ### Create the content ----
     dashboardBody(
       tabItems(
-        #### Set up the Overview Page ----
+        ####Overview Page ----
         tabItem(
           tabName = "overview",
           h1("Two Period Differences-in-Differences Regression"),
@@ -67,8 +67,9 @@ ui <- list(
           p("Explore the app based on the following instructions:"),
           tags$ol(
             tags$li("Review any prerequiste ideas using the Prerequistes tab."),
-            tags$li("Explore the assumptions by the Explore Assumptions Tab."),
-            tags$li("Explore the interpretations by the Explore Interpretations Tab.")
+            tags$li("Explore the assumptions of the model using the Explore Assumptions Tab."),
+            tags$li("Explore interpreting the model using the Explore Interpretations Tab."),
+            tags$li("Test your understanding using the Challenge Tab.")
           ),
           ##### Go Button--location will depend on your goals
           div(
@@ -97,7 +98,7 @@ ui <- list(
             div(class = "updated", "Last Update: 10/07/2024 by XY.")
           )
         ),
-        #### Set up the Prerequisites Page ----
+        ####Prerequisites Page ----
         tabItem(
           tabName = "prerequisites",
           withMathJax(),
@@ -261,7 +262,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
           )
         ),
 
-   #### Set up an Explore 1 Page ----
+   ####Explore Assumptions Page ----
    tabItem(
      tabName = "explore1",
      h2("Explore Assumptions"),
@@ -287,7 +288,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
            title = "Parallel Trends",
            br(),
            
-           # Input column (left side) ----
+           #Input column (left side)
            column(
              width = 4,
              wellPanel(
@@ -321,7 +322,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
              )
            ),
            
-           # Output column (right side) ----
+           # Output column (right side)
            column(
              width = 8,
              plotOutput("didPlot", height = "400px"),
@@ -334,7 +335,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
            title = "Exchangeability",
            br(),
            
-           # Input column (left side) ----
+           # Input column (left side)
            column(
              width = 4,
              wellPanel(
@@ -362,7 +363,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
              )
            ),
            
-           # Output column (right side) ----
+           # Output column (right side)
            column(
              width = 8,
              plotOutput("plotExchangeability", height = "400px"),
@@ -374,7 +375,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
      )
    ),
    
-   #### Set up the Explore Interpretation Page ----
+   ####Explore Interpretation Page ----
    tabItem(
      tabName = "explore2",
      h2("Explore Interpretations"),
@@ -422,7 +423,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
     ),
    
        
-   #### Set up the Challenge Page ----
+   ####Challenge Page ----
    tabItem(
      tabName = "challenge",
      h2("Challenge"),
@@ -434,7 +435,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
        id = "challenge_tabs",
        type = "tabs",
        
-       # Assumption Quiz Tab
+       ###### Assumption Quiz -----
        tabPanel(
          title = "Assumption Quiz",
          br(),
@@ -461,7 +462,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
          )
        ),
        
-       # Interpretation Quiz Tab
+       #####Interpretation Quiz Tab -----
        tabPanel(
          title = "Interpretation Quiz",
          br(),
@@ -495,7 +496,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
      )
    ),
    
-   #### Set up the References Page ----
+   #### References Page ----
    tabItem(
      tabName = "references",
      h2("References"),
@@ -552,7 +553,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
 # Server code  ----
 server <- function(input, output, session) {
   
-  # Info button logic
+  #### Info button ----
   observeEvent(input$info, {
     sendSweetAlert(
       session = session,
@@ -562,7 +563,7 @@ server <- function(input, output, session) {
     )
   })
   
-  #### Button to navigate to prerequisites page ####
+  #### Button to navigate to prerequisites page ----
   observeEvent(
     eventExpr = input$go,
     handlerExpr = {
@@ -571,7 +572,7 @@ server <- function(input, output, session) {
         inputId = "pages",
         selected = "prerequisites")
     })
-  
+  #### Parallel Trends Assumption ----
   # Generate data for Parallel Trends Assumption
   generate_data <- reactive({
     years <- 1959:1969
@@ -600,7 +601,7 @@ server <- function(input, output, session) {
     )
   })
   
-  # Render the DID plot ----
+  # Render the DID plot
   output$didPlot <- renderPlot({
     data <- generate_data()
     intervention_year <- 1964
@@ -640,6 +641,7 @@ server <- function(input, output, session) {
     }
   })
   
+  #### Exchangeability Assumption ----
   # Assumption Check for Exchangeability
   output$exchangeabilityCheck <- renderUI({
     if (input$confounder == 0) {
@@ -697,8 +699,7 @@ server <- function(input, output, session) {
       )
   })
   
-
-    
+  #### Chanllenge ----
   # Load the question banks
   assumption_questions <- read.csv("questionbank1.csv", stringsAsFactors = FALSE)
   interpretation_questions <- read.csv("questionbank2.csv", stringsAsFactors = FALSE)
@@ -713,7 +714,7 @@ server <- function(input, output, session) {
     shuffled_choices = NULL
   )
   
-  ### Assumption Quiz ###
+  ##### Assumption Quiz -----
   
   # Shuffle choices for the current question
   observeEvent(values_assumption$num, {
@@ -788,7 +789,7 @@ server <- function(input, output, session) {
     updateRadioButtons(session, "assumption_choice", selected = character(0))  # Reset selection
   })
   
-  ### Interpretation Quiz ###
+  ##### Interpretation Quiz -----
   
   # Shuffle choices for the current question
   observeEvent(values_interpretation$num, {
@@ -863,7 +864,7 @@ server <- function(input, output, session) {
     updateRadioButtons(session, "interpretation_choice", selected = character(0))  # Reset selection
   })
   
-  
+#### Interpretation ----
 #load data
 data_vote_main <-read.csv("data_vote_main.csv")
 
@@ -932,7 +933,7 @@ observeEvent(c(input$treatment, input$covariates), {
   })
 })
 
-# Plot DiD Effect Visualization (optional)
+# Plot DiD Effect Visualization
 output$didfloodplot <- renderPlot({
   ggplot(data_vote_main, aes(x = as.Date(date), y = v_green_pct, color = factor(.data[[input$treatment]]), group = factor(.data[[input$treatment]]))) +
     geom_line(size = 1.2) +
