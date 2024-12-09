@@ -59,7 +59,7 @@ ui <- list(
         ####Overview Page ----
         tabItem(
           tabName = "overview",
-          h1("Two Period Differences-in-Differences Regression"),
+          h1("Two Period Difference-in-Difference Regression"),
           p("This app is designed to help students explore and understand 
           the core concepts and assumptions of Two-Period Diff-in-Diff by experimenting
             with simulation."),
@@ -164,11 +164,11 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
               ),
               tags$li(
                 tags$strong("Counterfactuals:"),
-                p("Counterfactuals ask what would have happened if the treatment had not occurred. In causal inference, we try to estimate the unobserved outcome for individuals who were treated.")
+                p("Counterfactuals ask what would have happened if the treatment had not occurred. In causal inference, we try to estimate this unobserved outcome for individuals who were treated.")
               ),
               tags$li(
                 tags$strong("Potential Outcomes Framework:"),
-                p("This framework models two potential outcomes: one if the individual is treated and one if not treated. The causal effect is the difference between these two outcomes, but only one is observed, so we estimate the average effect.")
+                p("This framework models two potential outcomes: one if the individual is treated and one if not treated. The causal effect is the difference between these two outcomes, but only one is observed, so we estimate the average effect under our model.")
               ),
               tags$li(
                 tags$strong("Confounding Variables:"),
