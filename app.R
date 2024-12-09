@@ -461,7 +461,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
                       size = "large", disabled = FALSE),
              bsButton(inputId = 'nextA', label = 'Next', style = "default",
                       size = "large", disabled = FALSE),
-             bsButton(inputId = 'clearA', label = 'Clear Answer', style = "default",
+             bsButton(inputId = 'clearA', label = 'Clear', style = "default",
                       size = "large", disabled = FALSE),
          
          
@@ -590,7 +590,7 @@ server <- function(input, output, session) {
       session = session,
       type = "info",
       title = "Information",
-      text = "This App helps you explore different assumptions using the Diff-in-Diff model."
+      text = "This App helps you explore the assumptions and interpretations of the Diff-in-Diff model."
     )
   })
   
@@ -705,29 +705,32 @@ server <- function(input, output, session) {
     )
   })
   
-  # Plot for Exchangeability Assumption (Line Plot)
   output$plotExchangeability <- renderPlot({
-    data <- generate_exchangeability_data()
-    intervention_year <- max(data$year)
-    
-    ggplot(data, aes(x = year, y = outcome, color = group, linetype = group)) +
-      geom_line(linewidth = 1.2) +
-      geom_vline(aes(xintercept = intervention_year), color = "black", linetype = "solid", linewidth = 1.2) +
-      labs(title = "Exchangeability Assumption", x = "Year", y = "Outcome") +
-      theme_minimal() +
-      scale_color_manual(values = c("Control Group" = "blue", "Treatment Group" = "red")) +
-      scale_linetype_manual(values = c("Control Group" = "solid", "Treatment Group" = "dashed")) +
-      theme(
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        legend.position = "bottom",
-        legend.title = element_blank(),
-        axis.title.x = element_text(size = 20, face = "bold"),
-        axis.title.y = element_text(size = 20, face = "bold"),
-        axis.text = element_text(size = 16, face = "bold"),
-        legend.text = element_text(size = 16, face = "bold"),
-        plot.title = element_text(size = 22, face = "bold")
-      )
+  data <- generate_exchangeability_data()
+  intervention_year <- max(data$year)
+  
+  # Add a slight offset to one group's outcome
+  data <- data %>%
+    mutate(outcome = if_else(group == "Treatment Group", outcome + 0.1, outcome))  # Add 0.01 to the treatment group
+  
+  ggplot(data, aes(x = year, y = outcome, color = group, linetype = group)) +
+    geom_line(linewidth = 1.2) +
+    geom_vline(aes(xintercept = intervention_year), color = "black", linetype = "solid", linewidth = 1.2) +
+    labs(title = "Exchangeability Assumption", x = "Year", y = "Outcome") +
+    theme_minimal() +
+    scale_color_manual(values = c("Control Group" = "blue", "Treatment Group" = "red")) +
+    scale_linetype_manual(values = c("Control Group" = "solid", "Treatment Group" = "dashed")) +
+    theme(
+      axis.text.x = element_blank(),
+      axis.ticks.x = element_blank(),
+      legend.position = "bottom",
+      legend.title = element_blank(),
+      axis.title.x = element_text(size = 20, face = "bold"),
+      axis.title.y = element_text(size = 20, face = "bold"),
+      axis.text = element_text(size = 16, face = "bold"),
+      legend.text = element_text(size = 16, face = "bold"),
+      plot.title = element_text(size = 22, face = "bold")
+    )
   })
   
   #### Chanllenge ----
@@ -746,6 +749,12 @@ server <- function(input, output, session) {
   )
   
   ##### Assumption Quiz -----
+  
+  # Reactive values to track current question and shuffled choices
+  values_assumption <- reactiveValues(
+    num = 1, # Start from the first question
+    shuffled_choices = NULL
+  )
   
   # Shuffle choices for the current question
   observeEvent(values_assumption$num, {
@@ -771,13 +780,21 @@ server <- function(input, output, session) {
       inputId = "assumption_choice",
       label = "Choose an answer:",
       choices = values_assumption$shuffled_choices,
-      selected = character(0),width = "100%"
+      selected = character(0), # Ensure no selection initially
+      width = "100%"
     )
   })
   
   # Handle "Check Answer" button
   observeEvent(input$submitA, {
     req(input$assumption_choice)
+    
+    # Clear existing feedback
+    output$assumption_challengeFeedback <- renderUI({ NULL })
+    output$assumption_textFeedback <- renderUI({ NULL })
+    shinyjs::hide("assumption_feedbackSection")  # Hide feedback first
+    
+    # Show new feedback
     current_question <- assumption_questions[values_assumption$num, ]
     correct_choice <- current_question[[current_question$correct_answer]]
     
@@ -806,7 +823,14 @@ server <- function(input, output, session) {
     output$assumption_textFeedback <- renderUI({ NULL })
     
     shinyjs::hide("assumption_feedbackSection")  # Hide feedback
-    values_assumption$num <- sample(1:nrow(assumption_questions), 1)  # Randomize question
+    
+    # Cycle through questions sequentially
+    if (values_assumption$num < nrow(assumption_questions)) {
+      values_assumption$num <- values_assumption$num + 1  # Move to next question
+    } else {
+      values_assumption$num <- 1  # Reset to first question after the last one
+    }
+    
     updateRadioButtons(session, "assumption_choice", selected = character(0))  # Reset selection
   })
   
@@ -822,6 +846,12 @@ server <- function(input, output, session) {
   
   ##### Interpretation Quiz -----
   
+  # Reactive values to track current question and shuffled choices
+  values_interpretation <- reactiveValues(
+    num = 1, # Start from the first question
+    shuffled_choices = NULL
+  )
+  
   # Shuffle choices for the current question
   observeEvent(values_interpretation$num, {
     current_question <- interpretation_questions[values_interpretation$num, ]
@@ -836,7 +866,7 @@ server <- function(input, output, session) {
   # Render question text
   output$interpretation_questionText <- renderUI({
     req(values_interpretation$num)
-    div(p(interpretation_questions$question_text[values_interpretation$num]))
+    p(interpretation_questions$question_text[values_interpretation$num])
   })
   
   # Render randomized choices
@@ -846,7 +876,8 @@ server <- function(input, output, session) {
       inputId = "interpretation_choice",
       label = "Choose an answer:",
       choices = values_interpretation$shuffled_choices,
-      selected = character(0),width = "100%"
+      selected = character(0), # Ensure no selection initially
+      width = "100%"
     )
   })
   
@@ -855,11 +886,10 @@ server <- function(input, output, session) {
     req(input$interpretation_choice)  # Ensure a choice is selected
     
     # Clear existing feedback
-    output$interpretation_challengeFeedback <- renderText({ "" })
-    output$interpretation_textFeedback <- renderText({ "" })
+    output$interpretation_challengeFeedback <- renderUI({ NULL })
+    output$interpretation_textFeedback <- renderUI({ NULL })
     
-    # Allow the clearing to visually take effect
-    shinyjs::delay(50, {
+    shinyjs::delay(50, {  # Slight delay to visually ensure feedback clearing
       current_question <- interpretation_questions[values_interpretation$num, ]
       correct_choice <- current_question[[current_question$correct_answer]]
       
@@ -867,15 +897,15 @@ server <- function(input, output, session) {
         output$interpretation_challengeFeedback <- boastUtils::renderIcon(
           icon = "correct", width = 36
         )
-        output$interpretation_textFeedback <- renderText({
-          current_question$correct_feedback
+        output$interpretation_textFeedback <- renderUI({
+          div(current_question$correct_feedback)
         })
       } else {
         output$interpretation_challengeFeedback <- boastUtils::renderIcon(
           icon = "incorrect", width = 36
         )
-        output$interpretation_textFeedback <- renderText({
-          current_question$incorrect_feedback
+        output$interpretation_textFeedback <- renderUI({
+          div(current_question$incorrect_feedback)
         })
       }
       shinyjs::show("interpretation_feedbackSection")  # Show feedback
@@ -889,7 +919,14 @@ server <- function(input, output, session) {
     output$interpretation_textFeedback <- renderUI({ NULL })
     
     shinyjs::hide("interpretation_feedbackSection")  # Hide feedback
-    values_interpretation$num <- sample(1:nrow(interpretation_questions), 1)  # Randomize question
+    
+    # Cycle through questions sequentially
+    if (values_interpretation$num < nrow(interpretation_questions)) {
+      values_interpretation$num <- values_interpretation$num + 1  # Move to next question
+    } else {
+      values_interpretation$num <- 1  # Reset to first question after the last one
+    }
+    
     updateRadioButtons(session, "interpretation_choice", selected = character(0))  # Reset selection
   })
   
@@ -990,7 +1027,7 @@ server <- function(input, output, session) {
       # Rename terms for display
       model_summary_displayed <- model_summary_rounded %>%
         mutate(term = case_when(
-          term == "(Intercept)" ~ "Baseline",
+          term == "(Intercept)" ~ "Intercept",
           term == "flooded" ~ "Flooded (Treatment)",
           term == "severe" ~ "Severe Weather (Treatment)",
           term == "time" ~ "Time (Post-Treatment Period)",
