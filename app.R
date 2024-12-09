@@ -3,14 +3,13 @@ library(shiny)
 library(shinydashboard)
 library(shinyBS)
 library(shinyWidgets)
-library(boastUtils)
 library(ggplot2)
+library(boastUtils)
 library(openxlsx)
 library(shinyjs)
 library(DT)
 library(broom)
 library(dplyr)
-library(lubridate)
 # Load additional dependencies and setup functions
 # source("global.R")
 
@@ -88,7 +87,8 @@ ui <- list(
           br(),
           h2("Acknowledgements"),
           p(
-            "This version of the app was originally developed and coded by Xin(Michael) Yun(2024), special thank you to Muzhi Liu.",
+            "This version of the app was originally developed and 
+            coded by Xin(Michael) Yun(2024), special thank you to Prof. Neil Hatfield, Prof. Dennis Pearl and Muzhi Liu. ",
             br(),
             br(),
             "Cite this app as:",
@@ -96,7 +96,7 @@ ui <- list(
             citeApp(),
             br(),
             br(),
-            div(class = "updated", "Last Update: 10/07/2024 by XY.")
+            div(class = "updated", "Last Update: 12/09/2024 by XY.")
           )
         ),
         ####Prerequisites Page ----
@@ -391,21 +391,23 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
      p("The interactive components in this page will help you understand how to 
     interpret the Diff-in-Diff model results. You can manipulate various aspects of 
     the model to see how different parameters impact the interpretation of the results."),
-     
+     p(strong("Note:"), " All numbers in this page are rounded to two decimal 
+       places. If some values appear as 0.00, it indicates that their original values were 
+       very close to zero but rounded to 0.00 after formatting."),
      sidebarLayout(
        sidebarPanel(
-         h4("Variable Selections"),
+         p(strong("Variable Selections")),
          p("This Difference-in-Difference model estimates the effect 
            of flood exposure or severe weather on Green Party voting share."),
          selectInput(
            "treatment", 
-           "Select Treatment Variable:",
+           p(strong("Select Treatment Variable:")),
            choices = list("Flooded" = "flooded", "Severe Weather" = "severe"),
            selected = "flooded"
          ),
          checkboxGroupInput(
            "covariates", 
-           "Select Covariates:",
+           p(strong("Select Covariates:")),
            choices = list(
              "Income Mean" = "income_mean",
              "Unemployment Rate" = "unemployed_rate",
@@ -508,6 +510,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
    tabItem(
      tabName = "references",
      h2("References"),
+     
      p(
        class = "hangingindent",
        "Attali, D., & Edwards, T. (2024). shinyWidgets: Custom inputs widgets for shiny. (v0.8.7). [R package]. Available from https://CRAN.R-project.org/package=shinyWidgets"
@@ -545,7 +548,27 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
      
      p(
        class = "hangingindent",
+       "Garside, S., & Zhai, H. (2022). If not now, when? Climate disaster and the Green vote following the 2021 Germany floods. Research & Politics, 9(4). https://doi.org/10.1177/20531680221141523"
+     ),
+     
+     p(
+       class = "hangingindent",
+       "Robinson, D., Hayes, A., & Couch, S. (2023). broom: Convert statistical analysis objects into tidy tibbles. (v1.0.5). [R package]. Available from https://CRAN.R-project.org/package=broom"
+     ),
+     
+     p(
+       class = "hangingindent",
+       "Walker, A. (2023). openxlsx: Read, write and edit xlsx files. (v4.2.5). [R package]. Available from https://CRAN.R-project.org/package=openxlsx"
+     ),
+     
+     p(
+       class = "hangingindent",
        "Wickham, H. (2024). ggplot2: Elegant graphics for data analysis. Springer-Verlag New York. Available from https://CRAN.R-project.org/package=ggplot2"
+     ),
+     
+     p(
+       class = "hangingindent",
+       "Wickham, H., François, R., Henry, L., & Müller, K. (2023). dplyr: A grammar of data manipulation. (v1.1.2). [R package]. Available from https://CRAN.R-project.org/package=dplyr"
      ),
      
      br(),
@@ -813,7 +836,7 @@ server <- function(input, output, session) {
   # Render question text
   output$interpretation_questionText <- renderUI({
     req(values_interpretation$num)
-    div(h4(interpretation_questions$question_text[values_interpretation$num]))
+    div(p(interpretation_questions$question_text[values_interpretation$num]))
   })
   
   # Render randomized choices
