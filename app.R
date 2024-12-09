@@ -447,7 +447,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
        
        ###### Assumption Quiz -----
        tabPanel(
-         title = "Assumption",
+         title = "Assumptions",
          br(),
          # Question and choices for Assumption Quiz
          htmlOutput("assumption_questionText"),
@@ -474,7 +474,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
        
        #####Interpretation Quiz -----
        tabPanel(
-         title = "Interpretation",
+         title = "Interpretations",
          br(),
          p("Scenario: A school district implemented a new reading program in 2021 aimed at improving students' reading scores. 
         The program was introduced in one city (treatment group) while a neighboring city, with similar demographics and 
