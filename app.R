@@ -197,13 +197,15 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
                       between the treatment and control groups remains constant over time."),
               
               tags$li(tags$strong("Testing the Assumption:"),
-                      p("Visual inspection is the most common method to test th
-                        e assumption. If the treatment and control groups exhibit 
+                      p("Visual inspection of a scatterplot of observations versus 
+                      time color-coded by group is the most common method to test this 
+                      assumption. If the treatment and control groups exhibit 
                         parallel trends in the pre-intervention period, this assumption
                         holds.Statistical tests can also be used to formally test for 
                         differences in pre-intervention trends.")),
               tags$li(tags$strong("If the assumption is violated:"),
-                      p("The Difference-in-Difference (Diff-in-Diff) model may yield biased estimates of the treatment effect.")
+                      p("The Difference-in-Difference (Diff-in-Diff) model may 
+                        yield biased estimates of the treatment effect.")
               )
             )
             
