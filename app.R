@@ -274,7 +274,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
             to adjust the parameters. The graphs will automatically update to show how
             these changes influence the model's results, helping you understand whether
             the assumptions hold or are violated in different scenarios."),
-     p(strong("Note:"), " The vertical black line represents the intervention year. 
+     p(strong("Note:"), " The vertical black line represents the intervention time point. 
    The left part is pre-intervention, and the right part is post-intervention. 
    The red dashed line represents the Treatment Group, 
    while the blue solid line represents the Control Group."),
