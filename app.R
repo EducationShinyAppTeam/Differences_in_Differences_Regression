@@ -387,25 +387,22 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
     following the 2021 Germany floods\" by Susanna Garside and Haoyu Zhai. 
     This study examines the short-term electoral effects of the 2021 floods in Germany 
     on voter support for the Green Party, using a difference-in-difference (DID) design. 
-    The treatment group here refers to areas affected by the floods."),
-     p("The interactive components in this R Shiny app will help you understand how to 
+    The treatment group here refers to areas affected by the floods or severe weather."),
+     p("The interactive components in this page will help you understand how to 
     interpret the Diff-in-Diff model results. You can manipulate various aspects of 
     the model to see how different parameters impact the interpretation of the results."),
      
      sidebarLayout(
        sidebarPanel(
-         h4("Model Summary"),
-         p("This Difference-in-Difference model estimates the effect of flood exposure or severe weather on Green Party voting share."),
-         
-         h4("Treatment and Control Group Selection"),
+         h4("Variable Selections"),
+         p("This Difference-in-Difference model estimates the effect 
+           of flood exposure or severe weather on Green Party voting share."),
          selectInput(
            "treatment", 
            "Select Treatment Variable:",
            choices = list("Flooded" = "flooded", "Severe Weather" = "severe"),
            selected = "flooded"
          ),
-         
-         h4("Select Covariates"),
          checkboxGroupInput(
            "covariates", 
            "Select Covariates:",
@@ -422,13 +419,12 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
          )
        ),
        mainPanel(
-         h4("ATT Result"),
-         textOutput("att_value"),
+         p("Interpretation of ATT:"),
+         uiOutput("att_value"),
          br(),
-         h4("Interpretation of ATT"),
+         p("Interpretation of p-value:"),
          uiOutput("interpretationText"),
          br(),
-         h4("Model Summary Table"),
          DTOutput("model_summary_table")
        )
      )
@@ -474,7 +470,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
          )
        ),
        
-       #####Interpretation Quiz Tab -----
+       #####Interpretation Quiz -----
        tabPanel(
          title = "Interpretation Quiz",
          br(),
@@ -919,25 +915,31 @@ server <- function(input, output, session) {
       p_value <- NA
     }
     
-    # Output ATT result
+    # Interpretation of ATT
     output$att_value <- renderText({
       if (!is.na(att)) {
-        paste("ATT (Average Treatment Effect on the Treated):", round(att * 100, 2), "%")
+        att_percentage <- round(att * 100, 2)
+        paste(
+          "ATT (Average Treatment Effect on the Treated):", att_percentage, 
+          "%. This means that areas exposed to the treatment (e.g., being flooded or severe weather) experienced an average increase",
+          "of", att_percentage, "percentage points in Green Party vote share compared to areas not exposed to the treatment,",
+          "after accounting for pre-treatment differences, time trends and the selected covariates."
+        )
       } else {
         "ATT not available due to missing interaction term."
       }
     })
     
-    # Dynamic interpretation of ATT
+    # interpretation of p value
     output$interpretationText <- renderUI({
       if (!is.na(p_value) && p_value < 0.05) {
-        interpretation <- paste("The ATT is statistically significant (p-value:", round(p_value, 2), ").",
+        interpretation <- paste("The ATT is statistically significant (p-value:", round(p_value, 2) ,  " ) after adjusting for the selected covariates.",
                                 "This indicates that the selected treatment (", treatment_var, ") is associated with an increase in Green Party vote share.",
                                 "An ATT of", round(att * 100, 2), "% suggests that municipalities exposed to", treatment_var,
                                 "experienced a", round(att * 100, 2), "percentage point increase in vote share for the Green Party compared to those that were not exposed.")
       } else if (!is.na(p_value)) {
         interpretation <- paste("The ATT is not statistically significant (p-value:", round(p_value, 2), "),",
-                                "indicating that there is insufficient evidence to conclude that the selected treatment has a significant effect on Green Party vote share.")
+                                "indicating that the null model of no effect on Green Party vote share is a reasonable explanation of the data.")
       } else {
         interpretation <- "ATT and p-value not available due to missing interaction term."
       }
@@ -950,14 +952,14 @@ server <- function(input, output, session) {
         return(NULL)
       }
       
-      # Round numeric columns to 5 decimal places
+      # Round numeric columns to 2 decimal places
       model_summary_rounded <- model_summary %>%
-        mutate(across(where(is.numeric), ~ round(.x, 5)))
+        mutate(across(where(is.numeric), ~ round(.x, 2)))
       
       # Render the datatable
       datatable(
         model_summary_rounded,
-        caption = "Model Coefficients and P-Values",
+        caption = "Model Summary Table",
         style = "bootstrap4",
         rownames = FALSE,
         options = list(
