@@ -60,8 +60,8 @@ ui <- list(
         tabItem(
           tabName = "overview",
           h1("Two Period Differences-in-Differences Regression"),
-          p("This app is designed to help students explore and understand the
-            core concepts, assumptions of Two-Period Diff-in-Diff by experimenting
+          p("This app is designed to help students explore and understand 
+          the core concepts and assumptions of Two-Period Diff-in-Diff by experimenting
             with simulation."),
           h2("Instructions"),
           p("Explore the app based on the following instructions:"),
