@@ -396,11 +396,11 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
        sidebarLayout(
          sidebarPanel(
            h4("Model Summary"),
-           p("This Difference-in-Difference (DiD) model estimates the effect of flood exposure or severe weather on Green Party voting share."),
+           p("This Difference-in-Difference model estimates the effect of flood exposure or severe weather on Green Party voting share."),
            
            h4("Treatment and Control Group Selection"),
            selectInput("treatment", "Select Treatment Variable:",
-                       choices = list("Flooded" = "flooded", "Severe" = "severe"),
+                       choices = list("Flooded" = "flooded", "Severe weather" = "severe"),
                        selected = "flooded"),
            
           
