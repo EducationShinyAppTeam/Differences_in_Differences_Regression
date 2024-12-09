@@ -457,7 +457,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
          
          # Action buttons for Assumption Quiz
          
-             bsButton(inputId = 'submitA', label = 'Check Answer', style = "default",
+             bsButton(inputId = 'submitA', label = 'Check', style = "default",
                       size = "large", disabled = FALSE),
              bsButton(inputId = 'nextA', label = 'Next', style = "default",
                       size = "large", disabled = FALSE),
@@ -883,33 +883,33 @@ server <- function(input, output, session) {
   
   # Handle "Check Answer" button
   observeEvent(input$submitX, {
-    req(input$interpretation_choice)  # Ensure a choice is selected
+    req(input$interpretation_choice)
     
     # Clear existing feedback
     output$interpretation_challengeFeedback <- renderUI({ NULL })
     output$interpretation_textFeedback <- renderUI({ NULL })
+    shinyjs::hide("interpretation_feedbackSection")  # Hide feedback first
     
-    shinyjs::delay(50, {  # Slight delay to visually ensure feedback clearing
-      current_question <- interpretation_questions[values_interpretation$num, ]
-      correct_choice <- current_question[[current_question$correct_answer]]
-      
-      if (input$interpretation_choice == correct_choice) {
-        output$interpretation_challengeFeedback <- boastUtils::renderIcon(
-          icon = "correct", width = 36
-        )
-        output$interpretation_textFeedback <- renderUI({
-          div(current_question$correct_feedback)
-        })
-      } else {
-        output$interpretation_challengeFeedback <- boastUtils::renderIcon(
-          icon = "incorrect", width = 36
-        )
-        output$interpretation_textFeedback <- renderUI({
-          div(current_question$incorrect_feedback)
-        })
-      }
-      shinyjs::show("interpretation_feedbackSection")  # Show feedback
-    })
+    # Show new feedback
+    current_question <- interpretation_questions[values_interpretation$num, ]
+    correct_choice <- current_question[[current_question$correct_answer]]
+    
+    if (input$interpretation_choice == correct_choice) {
+      output$interpretation_challengeFeedback <- boastUtils::renderIcon(
+        icon = "correct", width = 36
+      )
+      output$interpretation_textFeedback <- renderUI({
+        div(current_question$correct_feedback)
+      })
+    } else {
+      output$interpretation_challengeFeedback <- boastUtils::renderIcon(
+        icon = "incorrect", width = 36
+      )
+      output$interpretation_textFeedback <- renderUI({
+        div(current_question$incorrect_feedback)
+      })
+    }
+    shinyjs::show("interpretation_feedbackSection")  # Show feedback
   })
   
   # Handle "Next" button
@@ -939,6 +939,7 @@ server <- function(input, output, session) {
     shinyjs::hide("interpretation_feedbackSection")  # Hide feedback
     updateRadioButtons(session, "interpretation_choice", selected = character(0))  # Reset selection
   })
+  
   
 #### Interpretation ----
   # Load the dataset
