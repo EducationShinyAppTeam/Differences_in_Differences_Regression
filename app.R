@@ -383,54 +383,56 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
      tabName = "explore2",
      h2("Explore Interpretations"),
      p("To start your Diff-in-Diff exploration, we will use data from 
-       the paper \"If not now, when? Climate disaster and the Green vote 
-       following the 2021 Germany floods\" by Susanna Garside and Haoyu Zhai. 
-       This study examines the short-term electoral effects of the 2021 floods in Germany 
-       on voter support for the Green Party, using a difference-in-difference (DID) design. 
-       The treatment group here refers to areas affected by the floods."),
+    the paper \"If not now, when? Climate disaster and the Green vote 
+    following the 2021 Germany floods\" by Susanna Garside and Haoyu Zhai. 
+    This study examines the short-term electoral effects of the 2021 floods in Germany 
+    on voter support for the Green Party, using a difference-in-difference (DID) design. 
+    The treatment group here refers to areas affected by the floods."),
      p("The interactive components in this R Shiny app will help you understand how to 
-       interpret the Diff-in-Diff model results. You can manipulate various aspects of 
-       the model to see how different parameters impact the interpretation of the results."),
+    interpret the Diff-in-Diff model results. You can manipulate various aspects of 
+    the model to see how different parameters impact the interpretation of the results."),
      
-     # Main content for interpreting Diff-in-Diff analysis
-     
-       sidebarLayout(
-         sidebarPanel(
-           h4("Model Summary"),
-           p("This Difference-in-Difference model estimates the effect of flood exposure or severe weather on Green Party voting share."),
-           
-           h4("Treatment and Control Group Selection"),
-           selectInput("treatment", "Select Treatment Variable:",
-                       choices = list("Flooded" = "flooded", "Severe weather" = "severe"),
-                       selected = "flooded"),
-           
-          
-           
-           h4("Select Covariates"),
-           checkboxGroupInput("covariates", "Include Additional Covariates:",
-                              choices = list(
-                                "Income Mean" = "income_mean",
-                                "Unemployment Rate" = "unemployed_rate",
-                                "Population Density" = "pop_per_sqkm",
-                                "Proportion of Elderly Population" = "old_share",
-                                "Land Set Aside (%)" = "land_set_pct",
-                                "Agricultural Land (%)" = "land_agri_pct",
-                                "Distance to Environmental Feature" = "distance"
-                              ),
-                              selected = character(0))
+     sidebarLayout(
+       sidebarPanel(
+         h4("Model Summary"),
+         p("This Difference-in-Difference model estimates the effect of flood exposure or severe weather on Green Party voting share."),
+         
+         h4("Treatment and Control Group Selection"),
+         selectInput(
+           "treatment", 
+           "Select Treatment Variable:",
+           choices = list("Flooded" = "flooded", "Severe Weather" = "severe"),
+           selected = "flooded"
          ),
          
-         mainPanel(
-           plotOutput("didfloodplot", height = "400px"),
-           br(),
-           tags$strong("ATT Result"),
-           textOutput("att_value"),
-           br(),
-           tags$strong("Interpretation of ATT"),
-           uiOutput("interpretationText")
+         h4("Select Covariates"),
+         checkboxGroupInput(
+           "covariates", 
+           "Select Covariates:",
+           choices = list(
+             "Income Mean" = "income_mean",
+             "Unemployment Rate" = "unemployed_rate",
+             "Population Density" = "pop_per_sqkm",
+             "Proportion of Elderly Population" = "old_share",
+             "Land Set Aside (%)" = "land_set_pct",
+             "Agricultural Land (%)" = "land_agri_pct",
+             "Distance to Environmental Feature" = "distance"
+           ),
+           selected = character(0)
          )
+       ),
+       mainPanel(
+         h4("ATT Result"),
+         textOutput("att_value"),
+         br(),
+         h4("Interpretation of ATT"),
+         uiOutput("interpretationText"),
+         br(),
+         h4("Model Summary Table"),
+         DTOutput("model_summary_table")
        )
-    ),
+     )
+   ),
    
        
    ####Challenge Page ----
@@ -875,87 +877,118 @@ server <- function(input, output, session) {
   })
   
 #### Interpretation ----
-#load data
-data_vote_main <-read.csv("data_vote_main.csv")
-
-# Observe changes in treatment and covariates to calculate ATT
-observeEvent(c(input$treatment, input$covariates), {
-  treatment_var <- input$treatment
+  # Load the dataset
+  data_vote_main <- read.csv("cleaned_data.csv")
   
-  # Prepare formula for the regression model
-  base_formula <- as.formula(paste(
-    "v_green_pct ~", treatment_var, "* I(date >= '2021-09-26')"
-  ))
-  
-  # Add selected covariates to the model formula
-  if (!is.null(input$covariates)) {
-    covariate_formula <- paste(input$covariates, collapse = " + ")
-    full_formula <- as.formula(paste(deparse(base_formula), "+", covariate_formula))
-  } else {
-    full_formula <- base_formula
-  }
-  
-  # Fit the DiD model with the selected treatment and covariates
-  model <- lm(full_formula, data = data_vote_main)
-  
-  # Extract the ATT estimate (interaction term of treatment and post-treatment period)
-  model_summary <- tidy(model)
-  interaction_term <- paste(treatment_var, "I(date >= \"2021-09-26\")TRUE", sep = ":")
-  
-  # Check if the interaction term exists in the model summary
-  if (interaction_term %in% model_summary$term) {
-    att <- model_summary %>%
-      filter(term == interaction_term) %>%
-      pull(estimate)
+  # Observe changes in treatment and covariates to calculate ATT
+  observeEvent(c(input$treatment, input$covariates), {
+    treatment_var <- input$treatment
     
-    # Extract p-value for the ATT
-    p_value <- model_summary %>%
-      filter(term == interaction_term) %>%
-      pull(p.value)
-  } else {
-    att <- NA
-    p_value <- NA
-  }
-  
-  # Output ATT result
-  output$att_value <- renderText({
-    if (!is.na(att)) {
-      paste("ATT (Average Treatment Effect on the Treated):", round(att * 100, 2), "%")
+    # Prepare formula for the regression model
+    base_formula <- as.formula(paste(
+      "v_green_pct ~", treatment_var, "* time"
+    ))
+    
+    # Add selected covariates to the model formula
+    if (!is.null(input$covariates) && length(input$covariates) > 0) {
+      covariate_formula <- paste(input$covariates, collapse = " + ")
+      full_formula <- as.formula(paste(deparse(base_formula), "+", covariate_formula))
     } else {
-      "ATT not available due to missing interaction term."
+      full_formula <- base_formula
     }
+    
+    # Fit the DiD model with the selected treatment and covariates
+    model <- lm(full_formula, data = data_vote_main)
+    
+    # Extract the ATT estimate (interaction term of treatment and time)
+    model_summary <- tidy(model)
+    interaction_term <- paste(treatment_var, "time", sep = ":")
+    
+    # Check if the interaction term exists in the model summary
+    if (interaction_term %in% model_summary$term) {
+      att <- model_summary %>%
+        filter(term == interaction_term) %>%
+        pull(estimate)
+      
+      # Extract p-value for the ATT
+      p_value <- model_summary %>%
+        filter(term == interaction_term) %>%
+        pull(p.value)
+    } else {
+      att <- NA
+      p_value <- NA
+    }
+    
+    # Output ATT result
+    output$att_value <- renderText({
+      if (!is.na(att)) {
+        paste("ATT (Average Treatment Effect on the Treated):", round(att * 100, 2), "%")
+      } else {
+        "ATT not available due to missing interaction term."
+      }
+    })
+    
+    # Dynamic interpretation of ATT
+    output$interpretationText <- renderUI({
+      if (!is.na(p_value) && p_value < 0.05) {
+        interpretation <- paste("The ATT is statistically significant (p-value:", round(p_value, 2), ").",
+                                "This indicates that the selected treatment (", treatment_var, ") is associated with an increase in Green Party vote share.",
+                                "An ATT of", round(att * 100, 2), "% suggests that municipalities exposed to", treatment_var,
+                                "experienced a", round(att * 100, 2), "percentage point increase in vote share for the Green Party compared to those that were not exposed.")
+      } else if (!is.na(p_value)) {
+        interpretation <- paste("The ATT is not statistically significant (p-value:", round(p_value, 2), "),",
+                                "indicating that there is insufficient evidence to conclude that the selected treatment has a significant effect on Green Party vote share.")
+      } else {
+        interpretation <- "ATT and p-value not available due to missing interaction term."
+      }
+      div(interpretation)
+    })
+    
+    # Render the model summary table
+    output$model_summary_table <- renderDT({
+      if (!exists("model_summary") || is.null(model_summary)) {
+        return(NULL)
+      }
+      
+      # Round numeric columns to 5 decimal places
+      model_summary_rounded <- model_summary %>%
+        mutate(across(where(is.numeric), ~ round(.x, 5)))
+      
+      # Render the datatable
+      datatable(
+        model_summary_rounded,
+        caption = "Model Coefficients and P-Values",
+        style = "bootstrap4",
+        rownames = FALSE,
+        options = list(
+          responsive = TRUE,
+          scrollX = TRUE,
+          columnDefs = list(
+            list(className = 'dt-center', targets = 0:(ncol(model_summary_rounded) - 1))
+          )
+        )
+      )
+    })
   })
   
-  # Dynamic interpretation of ATT
-  output$interpretationText <- renderUI({
-    if (!is.na(p_value) && p_value < 0.05) {
-      interpretation <- paste("The ATT is statistically significant (p-value:", round(p_value, 2), ").",
-                              "This indicates that the selected treatment (", treatment_var, ") is associated with an increase in Green Party vote share.",
-                              "An ATT of", round(att * 100, 2), "% suggests that municipalities exposed to", treatment_var,
-                              "experienced a", round(att * 100, 2), "percentage point increase in vote share for the Green Party compared to those that were not exposed.")
-    } else if (!is.na(p_value)) {
-      interpretation <- paste("The ATT is not statistically significant (p-value:", round(p_value, 2), "),",
-                              "indicating that there is insufficient evidence to conclude that the selected treatment has a significant effect on Green Party vote share.")
-    } else {
-      interpretation <- "ATT and p-value not available due to missing interaction term."
-    }
-    div(interpretation)
+  # Display the dataset in a table format
+  output$data_table <- renderDT({
+    datatable(
+      data_vote_main,
+      caption = "Dataset Preview",
+      style = "bootstrap4",
+      rownames = FALSE,
+      options = list(
+        responsive = TRUE,
+        scrollX = TRUE,
+        columnDefs = list(
+          list(className = 'dt-center', targets = 0:(ncol(data_vote_main) - 1))
+        )
+      )
+    )
   })
-})
+}
 
-# Plot DiD Effect Visualization
-output$didfloodplot <- renderPlot({
-  ggplot(data_vote_main, aes(x = as.Date(date), y = v_green_pct, color = factor(.data[[input$treatment]]), group = factor(.data[[input$treatment]]))) +
-    geom_line(size = 1.2) +
-    
-    labs(title = paste("Difference-in-Difference Plot for", input$treatment),
-         x = "Date", 
-         y = "Green Party Vote Share",
-         color = paste("Treatment:", input$treatment)) +
-    scale_color_manual(values = c("0" = "blue", "1" = "red"), labels = c("Control (No Treatment)", "Treated")) +
-    theme_minimal()
-})
-  }
 
 # Run the application using boastApp ----
 boastUtils::boastApp(ui = ui, server = server)
