@@ -391,9 +391,9 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
      p("The interactive components in this page will help you understand how to 
     interpret the Diff-in-Diff model results. You can manipulate various aspects of 
     the model to see how different parameters impact the interpretation of the results."),
-     p(strong("Note:"), " All numbers in this page are rounded to two decimal 
-       places. If some values appear as 0.00, it indicates that their original values were 
-       very close to zero but rounded to 0.00 after formatting."),
+     p(strong("Note:"), " All numbers in this page are rounded to four decimal 
+       places. If some values appear as 0, it indicates that their original values were 
+       very close to zero but rounded to 0 after formatting."),
      sidebarLayout(
        sidebarPanel(
          p(strong("Variable Selections")),
@@ -421,10 +421,10 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
          )
        ),
        mainPanel(
-         p("Interpretation of ATT:"),
+         p(strong("Interpretation of ATT:")),
          uiOutput("att_value"),
          br(),
-         p("Interpretation of p-value:"),
+         p(strong("Interpretation of p-value:")),
          uiOutput("interpretationText"),
          br(),
          DTOutput("model_summary_table")
@@ -956,12 +956,12 @@ server <- function(input, output, session) {
     # interpretation of p value
     output$interpretationText <- renderUI({
       if (!is.na(p_value) && p_value < 0.05) {
-        interpretation <- paste("The ATT is statistically significant (p-value:", round(p_value, 2) ,  " ) after adjusting for the selected covariates.",
+        interpretation <- paste("The ATT is statistically significant (p-value:", round(p_value, 4) ,  " ) after adjusting for the selected covariates.",
                                 "This indicates that the selected treatment (", treatment_var, ") is associated with an increase in Green Party vote share.",
                                 "An ATT of", round(att * 100, 2), "% suggests that municipalities exposed to", treatment_var,
                                 "experienced a", round(att * 100, 2), "percentage point increase in vote share for the Green Party compared to those that were not exposed.")
       } else if (!is.na(p_value)) {
-        interpretation <- paste("The ATT is not statistically significant (p-value:", round(p_value, 2), "),",
+        interpretation <- paste("The ATT is not statistically significant (p-value:", round(p_value, 4), "),",
                                 "indicating that the null model of no effect on Green Party vote share is a reasonable explanation of the data.")
       } else {
         interpretation <- "ATT and p-value not available due to missing interaction term."
@@ -975,13 +975,32 @@ server <- function(input, output, session) {
         return(NULL)
       }
       
-      # Round numeric columns to 2 decimal places
+      # Round numeric columns to 4 decimal places
       model_summary_rounded <- model_summary %>%
-        mutate(across(where(is.numeric), ~ round(.x, 2)))
+        mutate(across(where(is.numeric), ~ round(.x, 4)))
+      
+      # Rename terms for display
+      model_summary_displayed <- model_summary_rounded %>%
+        mutate(term = case_when(
+          term == "(Intercept)" ~ "Baseline",
+          term == "flooded" ~ "Flooded (Treatment)",
+          term == "severe" ~ "Severe Weather (Treatment)",
+          term == "time" ~ "Time (Post-Treatment Period)",
+          term == "income_mean" ~ "Average Income",
+          term == "unemployed_rate" ~ "Unemployment Rate",
+          term == "pop_per_sqkm" ~ "Population Density",
+          term == "old_share" ~ "Proportion of Elderly Population",
+          term == "land_set_pct" ~ "Land Set Aside (%)",
+          term == "land_agri_pct" ~ "Agricultural Land (%)",
+          term == "distance" ~ "Distance to Environmental Feature",
+          term == "flooded:time" ~ "Flooded x Time (Interaction)",
+          term == "severe:time" ~ "Severe Weather x Time (Interaction)",
+          TRUE ~ term # Default: leave unchanged
+        ))
       
       # Render the datatable
       datatable(
-        model_summary_rounded,
+        model_summary_displayed,
         caption = "Model Summary Table",
         style = "bootstrap4",
         rownames = FALSE,
