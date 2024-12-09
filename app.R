@@ -10,6 +10,7 @@ library(shinyjs)
 library(DT)
 library(broom)
 library(dplyr)
+library(lubridate)
 # Load additional dependencies and setup functions
 # source("global.R")
 
