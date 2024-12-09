@@ -457,7 +457,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
          
          # Action buttons for Assumption Quiz
          
-             bsButton(inputId = 'submitA', label = 'Check', style = "default",
+             bsButton(inputId = 'submitA', label = 'Check Answer', style = "default",
                       size = "large", disabled = FALSE),
              bsButton(inputId = 'nextA', label = 'Next', style = "default",
                       size = "large", disabled = FALSE),
@@ -493,7 +493,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
                       size = "large", disabled = FALSE),
              bsButton(inputId = 'nextX', label = 'Next', style = "default",
                       size = "large", disabled = FALSE),
-             bsButton(inputId = 'clearX', label = 'Clear Answer', style = "default",
+             bsButton(inputId = 'clearX', label = 'Clear', style = "default",
                       size = "large", disabled = FALSE),
          
          
