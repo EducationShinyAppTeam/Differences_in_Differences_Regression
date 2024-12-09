@@ -385,7 +385,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
        the paper \"If not now, when? Climate disaster and the Green vote 
        following the 2021 Germany floods\" by Susanna Garside and Haoyu Zhai. 
        This study examines the short-term electoral effects of the 2021 floods in Germany 
-       on voter support for the Green Party, using a difference-in-differences (DID) design. 
+       on voter support for the Green Party, using a difference-in-difference (DID) design. 
        The treatment group here refers to areas affected by the floods."),
      p("The interactive components in this R Shiny app will help you understand how to 
        interpret the Diff-in-Diff model results. You can manipulate various aspects of 
@@ -396,7 +396,7 @@ Y_{it} = \\beta_0 + \\beta_1 t + \\beta_2 G_i + \\beta_3 (t \\times I_t \\times 
        sidebarLayout(
          sidebarPanel(
            h4("Model Summary"),
-           p("This Difference-in-Differences (DiD) model estimates the effect of flood exposure or severe weather on Green Party voting share."),
+           p("This Difference-in-Difference (DiD) model estimates the effect of flood exposure or severe weather on Green Party voting share."),
            
            h4("Treatment and Control Group Selection"),
            selectInput("treatment", "Select Treatment Variable:",
@@ -947,7 +947,7 @@ output$didfloodplot <- renderPlot({
   ggplot(data_vote_main, aes(x = as.Date(date), y = v_green_pct, color = factor(.data[[input$treatment]]), group = factor(.data[[input$treatment]]))) +
     geom_line(size = 1.2) +
     
-    labs(title = paste("Difference-in-Differences Plot for", input$treatment),
+    labs(title = paste("Difference-in-Difference Plot for", input$treatment),
          x = "Date", 
          y = "Green Party Vote Share",
          color = paste("Treatment:", input$treatment)) +
