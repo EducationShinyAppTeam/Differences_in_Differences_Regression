@@ -8,4 +8,5 @@
 ![App Screenshot](../docs/screenshot.png)
 
 # App Description
-Type the description of your app here
+This app is designed to help students explore and understand the core concepts, 
+assumptions and interpretations of Two-Period Difference-in-Difference (Diff-in-Diff) Regression by experimenting with simulation and real life data.
