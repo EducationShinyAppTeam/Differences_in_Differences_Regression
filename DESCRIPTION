@@ -3,16 +3,19 @@ ShortName: Two Period DID
 Date: 2024-10-1
 Lifecycle: experimental
 Authors@R: c(
-    person(given = "Xin (Michael)", family = "Yun", role = c("aut", "cre")),
-    person(given = "Dennis", family = "Pearl", role = c("aut")),
-    person(given = "Neil", family = "Hatfield", email = "neil.hatfield@psu.edu", role = c("aut"))
+    person(given = "Xin (Michael)", family = "Yun", email = "yun.xin@outlook.com", role = c("aut", "cre")),
+    person(given = "Neil", family = "Hatfield", email = "neil.hatfield@psu.edu", role = c("aut")),
+    person(given = "Dennis", family = "Pearl", email = "dkp13@psu.edu", role = c("aut"))
   )
-Chapter: Sample Chapter
-Description: This app is focused on the common types of xyz.
+Chapter: Chapter 14 - Causal Inference 
+Description: This app is designed to help students explore and understand the core concepts, 
+assumptions and interpretations of Two-Period Difference-in-Difference (Diff-in-Diff) Regression by experimenting with simulation and real life data.
 LearningObjectives: c(
-    "The student will learn to understand Concept A in way z.",
-    "The student will learn to understand Concept B as description y."
-  )
+    "The student will learn to review prerequisite ideas necessary for understanding Two-Period Diff-in-Diff.",
+    "The student will learn to identify and evaluate the key assumptions of the Two-Period Diff-in-Diff model.",
+    "The student will learn to interpret the coefficients and results of a Two-Period Diff-in-Diff regression.",
+    "The student will practice applying Diff-in-Diff concepts through simulations, real data, and challenge exercises."
+)
 DisplayMode: Normal
 URL: https://psu-eberly.shinyapps.io/Differences_in_Differences_Regression
 BugReports: https://github.com/EducationShinyAppTeam/Differences_in_Differences_Regression/issues
